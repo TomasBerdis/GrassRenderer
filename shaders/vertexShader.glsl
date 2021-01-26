@@ -15,8 +15,8 @@ void main()
    if (centerPosition.y == 1.0f)
    {   
       float R1 = -0.1f;
-      float R2 = 1.0f;
-      float b  = 0.3f;
+      float R2 = 0.5f;
+      float b  = 0.5f;
       float newX = position.x + (b * (2 * R1 - 1));
       float newZ = position.z + (b * (2 * R2 - 1));
       newPosition = vec3(newX, position.y, newZ);

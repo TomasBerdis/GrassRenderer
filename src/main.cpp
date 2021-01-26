@@ -12,6 +12,6 @@ int main(int argc, char **argv)
 	window.resize(640, 480);
 	window.show();
 
-	std::cout << "Grass Renderer is on...";
+	std::cout << "Grass Renderer is on..." << std::endl << std::endl;
 	return app.exec();
 }

@@ -36,8 +36,10 @@ void OpenGLWindow::initialize()
 	gl = std::make_shared<ge::gl::Context>();
 
 	/* Shaders */
-	std::cout << "\nVertex shader path: " << VERTEX_SHADER;
-	std::cout << "\nFragment shader path: " << FRAGMENT_SHADER << std::endl << std::endl;
+	std::cout << "Vertex shader path: " << VERTEX_SHADER << std::endl;
+	std::cout << "Tessellation control shader path: " << TESS_CONTROL_SHADER << std::endl;
+	std::cout << "Tessellation evaluation shader path: " << TESS_EVALUATION_SHADER << std::endl;
+	std::cout << "Fragment shader path: " << FRAGMENT_SHADER << std::endl;
 
 	std::shared_ptr<ge::gl::Shader> vertexShader	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(VERTEX_SHADER));
 	std::shared_ptr<ge::gl::Shader> tessControlShader = std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER, ge::util::loadTextFile(TESS_CONTROL_SHADER));
@@ -48,10 +50,10 @@ void OpenGLWindow::initialize()
 
 	std::vector<float> grassBladePos
 	{
-		-0.25f, -0.5f, 0.0f,
-		 0.25f, -0.5f, 0.0f,
-		 0.25f,  0.5f, 0.0f,
-		-0.25f,  0.5f, 0.0f
+		-0.20f, -0.75f, 0.0f,
+		 0.20f, -0.75f, 0.0f,
+		 0.05f,  0.75f, 0.0f,
+		-0.05f,  0.75f, 0.0f
 		// x, y, z
 	};
 
@@ -83,6 +85,7 @@ void OpenGLWindow::initialize()
 
 void OpenGLWindow::render()
 {
+	context->makeCurrent(this);
 	const qreal retinaScale = devicePixelRatio();
 	gl->glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -90,7 +93,7 @@ void OpenGLWindow::render()
 
 	shaderProgram->use();
 	VAO->bind();
-	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 	gl->glDrawElements(GL_PATCHES, 4, GL_UNSIGNED_INT, nullptr);
@@ -124,6 +127,9 @@ bool OpenGLWindow::event(QEvent* event)
 	switch (event->type())
 	{
 		case QEvent::UpdateRequest:
+			renderNow();
+			return true;
+		case QEvent::WindowStateChange:
 			renderNow();
 			return true;
 		default:

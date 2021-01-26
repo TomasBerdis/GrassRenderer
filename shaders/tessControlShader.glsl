@@ -14,7 +14,7 @@ out vec3 tcCenterPosition[];
 vec3 calcControlPoint(vec3 lower, vec3 upper)
 {
 	// scaled between -1/4 & 1/4
-	float rand1 = -0.2f;
+	float rand1 = 0.2f;
 	// scaled between 3/4 & 5/4
 	float rand2 = 1.0f;
 
@@ -26,7 +26,7 @@ vec3 calcControlPoint(vec3 lower, vec3 upper)
 
 void main()
 {
-    float tessellationLevel = 5.0f;
+    float tessellationLevel = 15.0f;
 
     if (gl_InvocationID == 0)
     {
@@ -39,8 +39,8 @@ void main()
         gl_TessLevelInner[0] = tessellationLevel;   // top and bottom
         gl_TessLevelInner[1] = tessellationLevel;   // left and right
         
-		controlPoints[0] = calcControlPoint(vPosition[1], vPosition[0]);
-		controlPoints[1] = calcControlPoint(vPosition[2], vPosition[3]);
+		controlPoints[0] = calcControlPoint(vPosition[3], vPosition[0]);
+		controlPoints[1] = calcControlPoint(vPosition[2], vPosition[1]);
     }
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 
