@@ -9,6 +9,8 @@
 #include <memory>
 #include <iostream>
 
+#include "SettingsWidget.hpp"
+
 class OpenGLWindow : public QWindow
 {
 Q_OBJECT
@@ -21,8 +23,11 @@ public:
 	void printError() const;
 	void initialize();
 
+	SettingsWidget *settingsWidget;
+
 public slots:
 	void renderNow();
+	void setTessLevel(int tessLevel);
 
 protected:
 	bool event(QEvent* event) override;
@@ -30,6 +35,7 @@ protected:
 
 private:
 	bool initialized;
+	int tessLevel = 8;
 
 	std::shared_ptr<ge::gl::Buffer> positionBuffer;
 	std::shared_ptr<ge::gl::Buffer> centerPositionBuffer;

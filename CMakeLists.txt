@@ -5,27 +5,28 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 
 find_package(GPUEngine COMPONENTS REQUIRED geGL geUtil)
-find_package(Qt5 COMPONENTS REQUIRED Gui)
+find_package(Qt5 COMPONENTS REQUIRED Gui Widgets)
 
 set(sources
-    main.cpp
-    OpenGLWindow.cpp OpenGLWindow.hpp)
+    src/main.cpp
+    src/OpenGLWindow.cpp src/OpenGLWindow.hpp
+    src/SettingsWidget.cpp src/SettingsWidget.hpp)
 
 find_file(vertexShader vertexShader.glsl
-    HINTS ${CMAKE_CURRENT_LIST_DIR}/../shaders
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
 find_file(fragmentShader fragmentShader.glsl
-    HINTS ${CMAKE_CURRENT_LIST_DIR}/../shaders
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
 find_file(tessControlShader tessControlShader.glsl
-    HINTS ${CMAKE_CURRENT_LIST_DIR}/../shaders
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
 find_file(tessEvaluationShader tessEvaluationShader.glsl
-    HINTS ${CMAKE_CURRENT_LIST_DIR}/../shaders
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
 
 add_executable(${PROJECT_NAME} ${sources})
-target_link_libraries(${PROJECT_NAME} Qt5::Gui geGL geUtil)
+target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Widgets geGL geUtil)
 target_compile_definitions(${PROJECT_NAME} PUBLIC "VERTEX_SHADER=\"${vertexShader}\"" "FRAGMENT_SHADER=\"${fragmentShader}\"" "TESS_CONTROL_SHADER=\"${tessControlShader}\"" "TESS_EVALUATION_SHADER=\"${tessEvaluationShader}\"")
 
 # setting up the MSVC helper var

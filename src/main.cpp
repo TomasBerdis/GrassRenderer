@@ -1,12 +1,12 @@
 #include <iostream>
 
-#include <QtGui/QGuiApplication>
+#include <QApplication>
 
 #include "OpenGLWindow.hpp"
 
 int main(int argc, char **argv)
 {
-	QGuiApplication app(argc, argv);
+	QApplication app(argc, argv);
 
 	OpenGLWindow window;
 	window.resize(640, 480);

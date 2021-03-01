@@ -4,6 +4,7 @@ OpenGLWindow::OpenGLWindow(QWindow* parent)
 	: QWindow(parent)
 	, initialized(false)
 	, context(nullptr)
+	, settingsWidget(nullptr)
 {
 	setSurfaceType(QWindow::OpenGLSurface);
 	surfaceFormat.setVersion(4, 5);
@@ -34,6 +35,11 @@ void OpenGLWindow::initialize()
 	/* Initialize GPUEngine */
 	ge::gl::init();
 	gl = std::make_shared<ge::gl::Context>();
+
+	/* Initialize settings widget */
+	settingsWidget = new SettingsWidget(this);
+	settingsWidget->show();
+	QObject::connect(settingsWidget, SIGNAL(tessLevelChanged(int)), this, SLOT(setTessLevel(int)));
 
 	/* Shaders */
 	std::cout << "Vertex shader path: " << VERTEX_SHADER << std::endl;
@@ -83,6 +89,14 @@ void OpenGLWindow::initialize()
 	initialized = true;
 }
 
+void OpenGLWindow::setTessLevel(int tessLevel)
+{
+	this->tessLevel = tessLevel;
+	//DEBUG
+	std::cout << "Tesselation Level: " << tessLevel << std::endl;
+	render();
+}
+
 void OpenGLWindow::render()
 {
 	context->makeCurrent(this);
@@ -91,9 +105,10 @@ void OpenGLWindow::render()
 	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	shaderProgram->set1i("uTessLevel", tessLevel);
 	shaderProgram->use();
 	VAO->bind();
-	//gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 	gl->glDrawElements(GL_PATCHES, 4, GL_UNSIGNED_INT, nullptr);

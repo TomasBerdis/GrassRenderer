@@ -11,6 +11,8 @@ in vec3 vCenterPosition[];
 out vec3 tcPosition[];
 out vec3 tcCenterPosition[];
 
+uniform int uTessLevel;
+
 vec3 calcControlPoint(vec3 lower, vec3 upper)
 {
 	// scaled between -1/4 & 1/4
@@ -26,7 +28,7 @@ vec3 calcControlPoint(vec3 lower, vec3 upper)
 
 void main()
 {
-    float tessellationLevel = 15.0f;
+    float tessellationLevel = uTessLevel;
 
     if (gl_InvocationID == 0)
     {
