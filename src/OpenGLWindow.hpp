@@ -2,6 +2,7 @@
 
 #include <QtGui/QWindow>
 #include <QtGui/QOpenGLContext>
+#include <QtGui/qevent.h>
 
 #include <geGL/geGL.h>
 #include <geUtil/Text.h>
@@ -36,6 +37,10 @@ public slots:
 protected:
 	bool event(QEvent* event) override;
 	void exposeEvent(QExposeEvent* event) override;
+	void wheelEvent(QWheelEvent* event);
+	void mousePressEvent(QMouseEvent* event);
+	void mouseMoveEvent(QMouseEvent* event);
+	float sign(float f);
 
 private:
 	bool initialized;
@@ -58,4 +63,7 @@ private:
 	glm::mat4 model;
 	glm::mat4 view;
 	glm::mat4 proj;
+	glm::mat4 mvp;
+
+	QPointF clickStartPos;
 };

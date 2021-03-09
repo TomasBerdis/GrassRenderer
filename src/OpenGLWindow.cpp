@@ -100,10 +100,7 @@ void OpenGLWindow::initialize()
 	model = glm::mat4(1.0f); // glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	view = glm::mat4(1.0f);
 	proj = glm::mat4(1.0f);
-	glm::mat4 mvp = proj * view * model;
-
-	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+	mvp = proj * view * model;
 	
 	grassPositionBuffer       = std::make_shared<ge::gl::Buffer>(grassBladePos.size() * sizeof(float), grassBladePos.data());
 	grassCenterPositionBuffer = std::make_shared<ge::gl::Buffer>(grassCenterPos.size() * sizeof(float), grassCenterPos.data());
@@ -143,6 +140,11 @@ void OpenGLWindow::render()
 
 	/* DRAW TERRAIN */
 	terrainShaderProgram->use();
+
+	// Uniforms
+	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+
 	terrainVAO->bind();
 	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
@@ -152,6 +154,8 @@ void OpenGLWindow::render()
 
 	// Uniforms
 	grassShaderProgram->set1i("uTessLevel", tessLevel);
+	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	grassVAO->bind();
 	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -203,4 +207,55 @@ void OpenGLWindow::exposeEvent(QExposeEvent* event)
 {
 	if (isExposed())
 		renderNow();
+}
+
+void OpenGLWindow::wheelEvent(QWheelEvent* event)
+{
+	float angle = event->angleDelta().y();
+	float scale = (angle > 0) ? 1.25 : 0.8;
+	model = glm::scale(model, glm::vec3(scale, scale, scale));
+	mvp = proj * view * model;
+
+	std::cout << "Mouse wheel moved by " << angle << std::endl;
+	renderNow();
+	event->accept();
+}
+
+void OpenGLWindow::mousePressEvent(QMouseEvent* event)
+{
+	// save position
+	clickStartPos = event->pos();
+	std::cout << "Mouse pressed." << std::endl;
+	event->accept();
+}
+
+void OpenGLWindow::mouseMoveEvent(QMouseEvent* event)
+{
+	QPointF movePos = event->pos();
+	float horizontalDelta = movePos.x() - clickStartPos.x();
+	float verticalDelta = movePos.y() - clickStartPos.y();
+
+	if (event->buttons() & Qt::LeftButton)
+	{
+		std::cout << "Left button move: " << std::endl;
+		model = glm::translate(model, glm::vec3(0.001f * horizontalDelta, 0.001f * -verticalDelta, 0.0f));
+	}
+	else if (event->buttons() & Qt::RightButton)
+	{
+		std::cout << "Right button move: " << std::endl;
+	}
+	mvp = proj * view * model;
+	clickStartPos = event->pos();
+	event->accept();
+	renderNow();
+}
+
+float OpenGLWindow::sign(float f)
+{
+	if (f > 0)
+		return 1.0f;
+	else if (f < 0)
+		return -1.0f;
+	else
+		return 0.0f;
 }
