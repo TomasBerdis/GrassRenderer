@@ -6,6 +6,10 @@
 #include <geGL/geGL.h>
 #include <geUtil/Text.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <memory>
 #include <iostream>
 
@@ -37,13 +41,21 @@ private:
 	bool initialized;
 	int tessLevel = 8;
 
-	std::shared_ptr<ge::gl::Buffer> positionBuffer;
-	std::shared_ptr<ge::gl::Buffer> centerPositionBuffer;
-	std::shared_ptr<ge::gl::Buffer> elementBuffer;
+	std::shared_ptr<ge::gl::Buffer> grassPositionBuffer;
+	std::shared_ptr<ge::gl::Buffer> grassCenterPositionBuffer;
+	std::shared_ptr<ge::gl::Buffer> grassElementBuffer;
+	std::shared_ptr<ge::gl::Buffer> terrainPositionBuffer;
+	std::shared_ptr<ge::gl::Buffer> terrainElementBuffer;
 
 	std::shared_ptr<ge::gl::Context> gl;
-	std::shared_ptr<ge::gl::Program> shaderProgram;
-	std::shared_ptr<ge::gl::VertexArray> VAO;
+	std::shared_ptr<ge::gl::Program> grassShaderProgram;
+	std::shared_ptr<ge::gl::Program> terrainShaderProgram;
+	std::shared_ptr<ge::gl::VertexArray> grassVAO;
+	std::shared_ptr<ge::gl::VertexArray> terrainVAO;
 	QOpenGLContext* context;
 	QSurfaceFormat surfaceFormat;
+
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 proj;
 };

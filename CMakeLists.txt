@@ -6,28 +6,35 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(GPUEngine COMPONENTS REQUIRED geGL geUtil)
 find_package(Qt5 COMPONENTS REQUIRED Gui Widgets)
+# find_package(glm 0.9.9 REQUIRED)
 
 set(sources
     src/main.cpp
     src/OpenGLWindow.cpp src/OpenGLWindow.hpp
     src/SettingsWidget.cpp src/SettingsWidget.hpp)
 
-find_file(vertexShader vertexShader.glsl
+find_file(grassVS grassVS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
-find_file(fragmentShader fragmentShader.glsl
+find_file(grassFS grassFS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
-find_file(tessControlShader tessControlShader.glsl
+find_file(grassTCS grassTCS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
-find_file(tessEvaluationShader tessEvaluationShader.glsl
+find_file(grassTES grassTES.glsl
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
+)
+find_file(terrainVS terrainVS.glsl
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
+)
+find_file(terrainFS terrainFS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
 
 add_executable(${PROJECT_NAME} ${sources})
 target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Widgets geGL geUtil)
-target_compile_definitions(${PROJECT_NAME} PUBLIC "VERTEX_SHADER=\"${vertexShader}\"" "FRAGMENT_SHADER=\"${fragmentShader}\"" "TESS_CONTROL_SHADER=\"${tessControlShader}\"" "TESS_EVALUATION_SHADER=\"${tessEvaluationShader}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "GRASS_VS=\"${grassVS}\"" "GRASS_FS=\"${grassFS}\"" "GRASS_TCS=\"${grassTCS}\"" "GRASS_TES=\"${grassTES}\"" "TERRAIN_VS=\"${terrainVS}\"" "TERRAIN_FS=\"${terrainFS}\"")
 
 # setting up the MSVC helper var
 get_target_property(Qt5dllPath Qt5::Gui IMPORTED_LOCATION_RELEASE)
