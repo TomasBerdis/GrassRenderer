@@ -40,6 +40,7 @@ void OpenGLWindow::initialize()
 	settingsWidget = new SettingsWidget(this);
 	settingsWidget->show();
 	QObject::connect(settingsWidget, SIGNAL(tessLevelChanged(int)), this, SLOT(setTessLevel(int)));
+	QObject::connect(settingsWidget, SIGNAL(rasterizationModeChanged(GLenum)), this, SLOT(setRasterizationMode(GLenum)));
 
 	/* Shaders */
 	std::cout << "Grass vertex shader path: "					<< GRASS_VS << std::endl;
@@ -85,8 +86,8 @@ void OpenGLWindow::initialize()
 
 	std::vector<float> terrainPos
 	{
-		-0.5f, -0.5f,  0.5f, 1.0f,
-		 0.5f, -0.5f,  0.5f, 1.0f,
+		-0.5f, -0.75f,  0.5f, 1.0f,
+		 0.5f, -0.75f,  0.5f, 1.0f,
 		 0.5f, -0.4f, -0.5f, 1.0f,
 		-0.5f, -0.4f, -0.5f, 1.0f
 	};
@@ -97,7 +98,7 @@ void OpenGLWindow::initialize()
 		2, 3, 0
 	};
 
-	model = glm::mat4(1.0f); // glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::mat4(1.0f);
 	view = glm::mat4(1.0f);
 	proj = glm::mat4(1.0f);
 	mvp = proj * view * model;
@@ -126,7 +127,14 @@ void OpenGLWindow::setTessLevel(int tessLevel)
 	this->tessLevel = tessLevel;
 	//DEBUG
 	std::cout << "Tessellation Level: " << tessLevel << std::endl;
-	render();
+	renderNow();
+}
+
+void OpenGLWindow::setRasterizationMode(GLenum mode)
+{
+	std::cout << "Rasterization mode changed: " << mode << std::endl;
+	rasterizationMode = mode;
+	renderNow();
 }
 
 void OpenGLWindow::render()
@@ -146,7 +154,7 @@ void OpenGLWindow::render()
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	terrainVAO->bind();
-	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	/* DRAW GRASS */
@@ -158,7 +166,7 @@ void OpenGLWindow::render()
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	grassVAO->bind();
-	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 	gl->glDrawElements(GL_PATCHES, 4, GL_UNSIGNED_INT, nullptr);
@@ -225,7 +233,6 @@ void OpenGLWindow::mousePressEvent(QMouseEvent* event)
 {
 	// save position
 	clickStartPos = event->pos();
-	std::cout << "Mouse pressed." << std::endl;
 	event->accept();
 }
 
@@ -237,12 +244,11 @@ void OpenGLWindow::mouseMoveEvent(QMouseEvent* event)
 
 	if (event->buttons() & Qt::LeftButton)
 	{
-		std::cout << "Left button move: " << std::endl;
 		model = glm::translate(model, glm::vec3(0.001f * horizontalDelta, 0.001f * -verticalDelta, 0.0f));
 	}
 	else if (event->buttons() & Qt::RightButton)
 	{
-		std::cout << "Right button move: " << std::endl;
+		model = glm::rotate(model, glm::radians(1.0f), glm::vec3(sign(verticalDelta), -sign(horizontalDelta), 0.0f));
 	}
 	mvp = proj * view * model;
 	clickStartPos = event->pos();

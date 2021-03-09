@@ -33,6 +33,7 @@ public:
 public slots:
 	void renderNow();
 	void setTessLevel(int tessLevel);
+	void setRasterizationMode(GLenum mode);
 
 protected:
 	bool event(QEvent* event) override;
@@ -45,6 +46,8 @@ protected:
 private:
 	bool initialized;
 	int tessLevel = 8;
+	GLenum rasterizationMode = GL_FILL;
+	std::vector<int> resolution = { 640, 480 };
 
 	std::shared_ptr<ge::gl::Buffer> grassPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> grassCenterPositionBuffer;
