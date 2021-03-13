@@ -9,6 +9,10 @@ OpenGLWindow::OpenGLWindow(QWindow* parent)
 	setSurfaceType(QWindow::OpenGLSurface);
 	surfaceFormat.setVersion(4, 5);
 	surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
+	model = glm::mat4(1.0f);
+	view = glm::mat4(1.0f);
+	proj = glm::mat4(1.0f);
+	mvp = proj * view * model;
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -57,6 +61,7 @@ void OpenGLWindow::initialize()
 	std::shared_ptr<ge::gl::Shader> terrainVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(TERRAIN_VS));
 	std::shared_ptr<ge::gl::Shader> terrainFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(TERRAIN_FS));
 
+	/* Shader programs */
 	grassShaderProgram		= std::make_shared<ge::gl::Program>(grassVS, grassTCS, grassTES, grassFS);
 	terrainShaderProgram	= std::make_shared<ge::gl::Program>(terrainVS, terrainFS);
 
@@ -97,11 +102,6 @@ void OpenGLWindow::initialize()
 		0, 1, 2,
 		2, 3, 0
 	};
-
-	model = glm::mat4(1.0f);
-	view = glm::mat4(1.0f);
-	proj = glm::mat4(1.0f);
-	mvp = proj * view * model;
 	
 	grassPositionBuffer       = std::make_shared<ge::gl::Buffer>(grassBladePos.size() * sizeof(float), grassBladePos.data());
 	grassCenterPositionBuffer = std::make_shared<ge::gl::Buffer>(grassCenterPos.size() * sizeof(float), grassCenterPos.data());
@@ -118,6 +118,8 @@ void OpenGLWindow::initialize()
 	terrainVAO = std::make_shared<ge::gl::VertexArray>();
 	terrainVAO->addElementBuffer(terrainElementBuffer);
 	terrainVAO->addAttrib(terrainPositionBuffer, 0, 4, GL_FLOAT);
+
+	gl->glEnable(GL_DEPTH_TEST);
 
 	initialized = true;
 }
@@ -140,9 +142,13 @@ void OpenGLWindow::setRasterizationMode(GLenum mode)
 void OpenGLWindow::render()
 {
 	/* RENDER CALL BEGIN */
+	// Update width and height
+	windowWidth = width();
+	windowHeight = height();
+
 	context->makeCurrent(this);
 	const qreal retinaScale = devicePixelRatio();
-	gl->glViewport(0, 0, width() * retinaScale, height() * retinaScale);
+	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
 	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -150,20 +156,21 @@ void OpenGLWindow::render()
 	terrainShaderProgram->use();
 
 	// Uniforms
-	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	terrainVAO->bind();
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
+
 	/* DRAW GRASS */
 	grassShaderProgram->use();
 
 	// Uniforms
 	grassShaderProgram->set1i("uTessLevel", tessLevel);
+	/*grassShaderProgram->set1i("uWindowWidth", windowWidth);
+	grassShaderProgram->set1i("uWindowHeight", windowHeight);*/
 	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	grassVAO->bind();
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);

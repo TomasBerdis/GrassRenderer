@@ -46,8 +46,10 @@ protected:
 private:
 	bool initialized;
 	int tessLevel = 8;
+	int windowWidth = 0;
+	int windowHeight = 0;
+
 	GLenum rasterizationMode = GL_FILL;
-	std::vector<int> resolution = { 640, 480 };
 
 	std::shared_ptr<ge::gl::Buffer> grassPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> grassCenterPositionBuffer;
