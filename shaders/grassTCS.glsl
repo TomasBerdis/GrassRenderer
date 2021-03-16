@@ -12,6 +12,7 @@ out vec3 tcPosition[];
 out vec3 tcCenterPosition[];
 
 uniform int uTessLevel;
+uniform mat4 uMVP;
 
 vec3 calcControlPoint(vec3 lower, vec3 upper)
 {

@@ -8,7 +8,7 @@ layout(location = 1) in vec4 centerPosition;
 out vec3 vPosition;
 out vec3 vCenterPosition;
 
-uniform mat4 uMVP;
+// uniform mat4 uMVP;
 
 void main()
 {
@@ -23,10 +23,10 @@ void main()
       float newZ = position.z + (b * (2 * R2 - 1));
       newPosition = vec4(newX, position.y, newZ, 1.0f);
    }
-   newPosition = uMVP * newPosition;
-   vec4 newCenterPosition = uMVP * centerPosition;
+   newPosition = newPosition;
+   vec4 newCenterPosition = centerPosition;
 
-   gl_Position = uMVP * newPosition;
+   gl_Position = newPosition;
 
    vPosition = vec3(newPosition.xyz);
    vCenterPosition = vec3(newCenterPosition.xyz);
