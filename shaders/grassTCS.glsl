@@ -16,7 +16,7 @@ uniform int uTessLevel;
 vec3 calcControlPoint(vec3 lower, vec3 upper)
 {
 	// scaled between -1/4 & 1/4
-	float rand1 = 0.2f;
+	float rand1 = 0.5f;
 	// scaled between 3/4 & 5/4
 	float rand2 = 1.0f;
 
@@ -44,7 +44,6 @@ void main()
 		controlPoints[0] = calcControlPoint(vPosition[3], vPosition[0]);
 		controlPoints[1] = calcControlPoint(vPosition[2], vPosition[1]);
     }
-    gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
 
     tcPosition[gl_InvocationID] = vPosition[gl_InvocationID];
     tcCenterPosition[gl_InvocationID] = vCenterPosition[gl_InvocationID];

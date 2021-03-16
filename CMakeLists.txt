@@ -31,10 +31,18 @@ find_file(terrainVS terrainVS.glsl
 find_file(terrainFS terrainFS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
+find_file(dummyVS dummyVS.glsl
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
+)
+find_file(dummyFS dummyFS.glsl
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
+)
 
 add_executable(${PROJECT_NAME} ${sources})
 target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Widgets geGL geUtil)
-target_compile_definitions(${PROJECT_NAME} PUBLIC "GRASS_VS=\"${grassVS}\"" "GRASS_FS=\"${grassFS}\"" "GRASS_TCS=\"${grassTCS}\"" "GRASS_TES=\"${grassTES}\"" "TERRAIN_VS=\"${terrainVS}\"" "TERRAIN_FS=\"${terrainFS}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC   "GRASS_VS=\"${grassVS}\"" "GRASS_FS=\"${grassFS}\"" "GRASS_TCS=\"${grassTCS}\"" "GRASS_TES=\"${grassTES}\""
+                                                    "TERRAIN_VS=\"${terrainVS}\"" "TERRAIN_FS=\"${terrainFS}\""
+                                                    "DUMMY_VS=\"${dummyVS}\"" "DUMMY_FS=\"${dummyFS}\"")
 
 # setting up the MSVC helper var
 get_target_property(Qt5dllPath Qt5::Gui IMPORTED_LOCATION_RELEASE)

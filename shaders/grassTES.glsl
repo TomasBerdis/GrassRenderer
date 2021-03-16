@@ -6,6 +6,8 @@ patch in vec3 controlPoints[2];
 
 in vec3 tcPosition[];
 
+uniform mat4 uMVP;
+
 struct SplineData
 {
 	vec3 pos;
@@ -38,5 +40,5 @@ void main()
     
 	vec3 splinePos = leftSpline.pos*(1.0f - u) + rightSpline.pos*u;
 
-    gl_Position = vec4(splinePos, 1.0f);
+    gl_Position = uMVP * vec4(splinePos, 1.0f);
 }

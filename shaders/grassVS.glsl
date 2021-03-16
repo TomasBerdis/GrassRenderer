@@ -14,7 +14,7 @@ void main()
 {
    vec4 newPosition = position;
 
-   if (centerPosition.y == 1.0f)
+   if (centerPosition.y > 0.1f)
    {   
       float R1 = -0.1f;
       float R2 = 0.5f;
@@ -23,12 +23,11 @@ void main()
       float newZ = position.z + (b * (2 * R2 - 1));
       newPosition = vec4(newX, position.y, newZ, 1.0f);
    }
-
    newPosition = uMVP * newPosition;
-   // centerPosition = centerPosition * uMVP;
+   vec4 newCenterPosition = uMVP * centerPosition;
 
-   gl_Position = newPosition;
+   gl_Position = uMVP * newPosition;
 
    vPosition = vec3(newPosition.xyz);
-   vCenterPosition = vec3(centerPosition.xyz);
+   vCenterPosition = vec3(newCenterPosition.xyz);
 }

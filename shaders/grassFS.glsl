@@ -1,16 +1,13 @@
 #version 450 core
 
-// uniform int uWindowWidth;
-// uniform int uWindowHeight;
+out vec4 color;
 
 void main()
 {
-    // int width = uWindowWidth;
-    // int height = uWindowHeight;
-    vec2 position = (gl_FragCoord.xy / vec2(640, 480));
+    vec2 position = (gl_FragCoord.xy / vec2(1280, 720));
 
     vec4 top = vec4(0.0, 1.0, 0.0, 1.0);
     vec4 bottom = vec4(0.0, 0.0, 0.0, 1.0);
 
-    gl_FragColor = vec4(mix(bottom, top, position.y));
+    color = vec4(mix(bottom, top, position.y));
 }
