@@ -8,6 +8,7 @@ SettingsWidget::SettingsWidget(QWindow* parent)
 {
 	setWindowFlag(Qt::Tool, true);
 	setWindowFlag(Qt::WindowStaysOnTopHint, true);
+	
 
 	tessLabel = new QLabel("Tessellation level: ", this);
 	tessLabel->setFont(QFont("Arial", 14, QFont::Bold));

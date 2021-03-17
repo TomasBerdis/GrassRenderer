@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QtGui/QWindow>
+#include <QtGui/QOpenGLWindow>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/qevent.h>
 #include <QtCore/qelapsedtimer.h>
@@ -19,11 +19,11 @@
 
 #include "SettingsWidget.hpp"
 
-class OpenGLWindow : public QWindow
+class OpenGLWindow : public QOpenGLWindow
 {
-Q_OBJECT
+	Q_OBJECT
 public:
-	explicit OpenGLWindow(QWindow *parent = nullptr);
+	explicit OpenGLWindow(QOpenGLWindow *parent = nullptr);
 
 	~OpenGLWindow();
 

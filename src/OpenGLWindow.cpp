@@ -1,12 +1,12 @@
 #include "OpenGLWindow.hpp"
 
-OpenGLWindow::OpenGLWindow(QWindow *parent)
-	: QWindow(parent)
+OpenGLWindow::OpenGLWindow(QOpenGLWindow *parent)
+	: QOpenGLWindow()
 	, initialized(false)
 	, context(nullptr)
 	, settingsWidget(nullptr)
 {
-	setSurfaceType(QWindow::OpenGLSurface);
+	setSurfaceType(QOpenGLWindow::OpenGLSurface);
 	surfaceFormat.setVersion(4, 5);
 	surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
 	model = glm::mat4(1.0f);
@@ -276,18 +276,18 @@ void OpenGLWindow::render()
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	terrainVAO->bind();
-	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	/* DRAW DUMMY */
-	dummyShaderProgram->use();
+	//dummyShaderProgram->use();
 
-	// Uniforms
-	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+	//// Uniforms
+	//dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
-	dummyVAO->bind();
-	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
+	//dummyVAO->bind();
+	//gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	//gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	/* DRAW GRASS */
 	grassShaderProgram->use();
