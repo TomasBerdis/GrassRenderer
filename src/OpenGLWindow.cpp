@@ -70,40 +70,65 @@ void OpenGLWindow::initialize()
 	terrainShaderProgram = std::make_shared<ge::gl::Program>(terrainVS, terrainFS);
 	dummyShaderProgram	 = std::make_shared<ge::gl::Program>(dummyVS, dummyFS);
 
-	// Vertices
+	// Generating vertices
+	srand(time(0));	// reset generator seed
+	float r = glm::linearRand(0.0f, 1.0f);
+
+	/* Rendering pipeline random values */
+	float r0 = glm::linearRand( 0.00f, 360.0f);	// angle
+	float r1 = glm::linearRand( 0.00f, 1.00f);	// x offset
+	float r2 = glm::linearRand( 0.00f, 1.00f);	// z offset
+	float r3 = glm::linearRand(-0.25f, 0.25f);	// TCS
+	float r4 = glm::linearRand( 0.75f, 1.25f);	// TCS
+	float r5 = glm::linearRand( 0.00f, 1.00f);	// R
+	float r6 = glm::linearRand( 0.00f, 1.00f);	// G
+	float r7 = glm::linearRand( 0.00f, 1.00f);	// B
+
 	float wMin = 0.5f;
 	float wMax = 2.0f;
 	float hMin = 2.0f;
 	float hMax = 5.0f;
 	float density = 1.0f;
-	srand(time(0));
-	float r1 = glm::linearRand(0.0f, 1.0f);
-	float w = wMin + r1 * (wMax - wMin);
-	float h = (hMin + r1 * (hMax - hMin)) * density;
+	float w = wMin + r * (wMax - wMin);
+	float h = (hMin + r * (hMax - hMin)) * density;
 
 	glm::vec4 pc { 0.0f, 0.0f, 0.0f, 1.0f };
 
-	glm::vec4 p1 = pc + glm::vec4(-0.5f * w, 0.0f, 0.0f, 0.0f);
-	glm::vec4 p2 = pc + glm::vec4( 0.5f * w, 0.0f, 0.0f, 0.0f);
-	glm::vec4 p3 = pc + glm::vec4( 0.5f * w,	h, 0.0f, 0.0f);
-	glm::vec4 p4 = pc + glm::vec4(-0.5f * w,	h, 0.0f, 0.0f);
-
-	std::vector<float> grassCenterPos
-	{
-		0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f,	 h, 0.0f, 1.0f,
-		0.0f,	 h, 0.0f, 1.0f
-		// x, y, z, w
-	};
+	glm::vec4 p1 = pc + glm::vec4(-0.5f * w, 0.0f, 0.0f, 1.0f);
+	glm::vec4 p2 = pc + glm::vec4( 0.5f * w, 0.0f, 0.0f, 1.0f);
+	glm::vec4 p3 = pc + glm::vec4( 0.5f * w,	h, 0.0f, 1.0f);
+	glm::vec4 p4 = pc + glm::vec4(-0.5f * w,	h, 0.0f, 1.0f);
 
 	std::vector<float> grassBladePos
 	{
-		p1.x, p1.y, p1.z, p1.w,
-		p2.x, p2.y, p2.z, p2.w,
-		p3.x, p3.y, p3.z, p3.w,
-		p4.x, p4.y, p4.z, p4.w
-		// x, y, z, w
+		p1.x, p1.y, p1.z, r0,
+		p2.x, p2.y, p2.z, r0,
+		p3.x, p3.y, p3.z, r0,
+		p4.x, p4.y, p4.z, r0
+		// x, y, z, r0
+	};
+	std::vector<float> grassCenterPos
+	{
+		0.0f, 0.0f, 0.0f, r1,
+		0.0f, 0.0f, 0.0f, r1,
+		0.0f, 1.0f, 0.0f, r1,
+		0.0f, 1.0f, 0.0f, r1
+		// x, lower/upper, z, r1
+	};
+	std::vector<float> grassTexCoord
+	{
+		0.0f, 0.0f, r2, r3,
+		0.0f, 0.0f, r2, r3,
+		0.0f, 0.0f, r2, r3,
+		0.0f, 0.0f, r2, r3
+		// u, v, r2, r3
+	};
+	std::vector<float> grassRandoms
+	{
+		r4, r5, r6, r7,
+		r4, r5, r6, r7,
+		r4, r5, r6, r7,
+		r4, r5, r6, r7
 	};
 
 	std::vector<int> grassBladeInd
@@ -172,12 +197,16 @@ void OpenGLWindow::initialize()
 
 	grassPositionBuffer		  = std::make_shared<ge::gl::Buffer>(grassBladePos.size() * sizeof(float), grassBladePos.data());
 	grassCenterPositionBuffer = std::make_shared<ge::gl::Buffer>(grassCenterPos.size() * sizeof(float), grassCenterPos.data());
+	grassTexCoordBuffer		  = std::make_shared<ge::gl::Buffer>(grassTexCoord.size() * sizeof(float), grassTexCoord.data());
+	grassRandomsBuffer		  = std::make_shared<ge::gl::Buffer>(grassRandoms.size() * sizeof(float), grassRandoms.data());
 	grassElementBuffer		  = std::make_shared<ge::gl::Buffer>(grassBladeInd.size() * sizeof(int), grassBladeInd.data());
 
 	grassVAO = std::make_shared<ge::gl::VertexArray>();
 	grassVAO->addElementBuffer(grassElementBuffer);
 	grassVAO->addAttrib(grassPositionBuffer, 0, 4, GL_FLOAT);
 	grassVAO->addAttrib(grassCenterPositionBuffer, 1, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassTexCoordBuffer, 2, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassRandomsBuffer, 3, 4, GL_FLOAT);
 
 	terrainPositionBuffer = std::make_shared<ge::gl::Buffer>(terrainPos.size() * sizeof(float), terrainPos.data());
 	terrainElementBuffer  = std::make_shared<ge::gl::Buffer>(terrainInd.size() * sizeof(int), terrainInd.data());
@@ -266,6 +295,7 @@ void OpenGLWindow::render()
 	// Uniforms
 	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 	grassShaderProgram->set1i("uTessLevel", tessLevel);
+	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
 
 	grassVAO->bind();
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);

@@ -5,25 +5,27 @@ layout(vertices = 4) out;
 
 patch out vec3 controlPoints[2];
 
-in vec3 vPosition[];
-in vec3 vCenterPosition[];
+in vec4 vPosition[];
+in vec4 vCenterPosition[];
+in vec4 vTexCoord[];
+in vec4 vRandoms[];
 
-out vec3 tcPosition[];
-out vec3 tcCenterPosition[];
+out vec4 tcPosition[];
+out vec4 tcCenterPosition[];
+out vec4 tcTexCoord[];
+out vec4 tcRandoms[];
 
 uniform int uTessLevel;
 uniform mat4 uMVP;
 
-vec3 calcControlPoint(vec3 lower, vec3 upper)
+vec3 calcControlPoint(vec4 lower, vec4 upper)
 {
-	// scaled between -1/4 & 1/4
-	float rand1 = 0.1f;
-	// scaled between 3/4 & 5/4
-	float rand2 = 0.75f;
+	float r3 = vTexCoord[0].w;   // r3
+	float r4 = vRandoms[0].x;    // r4
 
-	float x = lower.x*rand1 + upper.x*(1.0 - rand1);
-	float y = lower.y*rand2 + upper.y*(1.0 - rand2);
-	float z = lower.z*rand1 + upper.z*(1.0 - rand1);
+	float x = lower.x * r3 + upper.x * (1.0 - r3);
+	float y = lower.y * r4 + upper.y * (1.0 - r4);
+	float z = lower.z * r3 + upper.z * (1.0 - r3);
 	return vec3(x, y, z);
 }
 
@@ -46,7 +48,8 @@ void main()
 		controlPoints[1] = calcControlPoint(vPosition[2], vPosition[1]);
     }
 
-    tcPosition[gl_InvocationID] = vPosition[gl_InvocationID];
+    tcPosition[gl_InvocationID]       = vPosition[gl_InvocationID];
     tcCenterPosition[gl_InvocationID] = vCenterPosition[gl_InvocationID];
-
+    tcTexCoord[gl_InvocationID]       = vTexCoord[gl_InvocationID];
+    tcRandoms[gl_InvocationID]        = vRandoms[gl_InvocationID];
 }

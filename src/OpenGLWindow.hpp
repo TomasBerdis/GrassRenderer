@@ -50,6 +50,7 @@ protected:
 private:
 	bool initialized;
 	int tessLevel	 = 8;
+	float maxBendingFactor = 0.5;
 	int windowWidth  = 0;
 	int windowHeight = 0;
 
@@ -60,6 +61,8 @@ private:
 
 	std::shared_ptr<ge::gl::Buffer> grassPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> grassCenterPositionBuffer;
+	std::shared_ptr<ge::gl::Buffer> grassTexCoordBuffer;
+	std::shared_ptr<ge::gl::Buffer> grassRandomsBuffer;
 	std::shared_ptr<ge::gl::Buffer> grassElementBuffer;
 	std::shared_ptr<ge::gl::Buffer> terrainPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> terrainElementBuffer;
