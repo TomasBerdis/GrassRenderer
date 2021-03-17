@@ -17,9 +17,9 @@ uniform mat4 uMVP;
 vec3 calcControlPoint(vec3 lower, vec3 upper)
 {
 	// scaled between -1/4 & 1/4
-	float rand1 = 0.5f;
+	float rand1 = 0.1f;
 	// scaled between 3/4 & 5/4
-	float rand2 = 1.0f;
+	float rand2 = 0.75f;
 
 	float x = lower.x*rand1 + upper.x*(1.0 - rand1);
 	float y = lower.y*rand2 + upper.y*(1.0 - rand2);

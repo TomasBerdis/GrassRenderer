@@ -56,42 +56,59 @@ void OpenGLWindow::initialize()
 	std::cout << "Dummy vertex shader path: " << DUMMY_VS << std::endl;
 	std::cout << "Dummy fragment shader path: " << DUMMY_FS << std::endl;
 
-	std::shared_ptr<ge::gl::Shader> grassVS = std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(GRASS_VS));
-	std::shared_ptr<ge::gl::Shader> grassTCS = std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER, ge::util::loadTextFile(GRASS_TCS));
-	std::shared_ptr<ge::gl::Shader> grassTES = std::make_shared<ge::gl::Shader>(GL_TESS_EVALUATION_SHADER, ge::util::loadTextFile(GRASS_TES));
-	std::shared_ptr<ge::gl::Shader> grassFS = std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(GRASS_FS));
-	std::shared_ptr<ge::gl::Shader> terrainVS = std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(TERRAIN_VS));
-	std::shared_ptr<ge::gl::Shader> terrainFS = std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(TERRAIN_FS));
-	std::shared_ptr<ge::gl::Shader> dummyVS = std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(DUMMY_VS));
-	std::shared_ptr<ge::gl::Shader> dummyFS = std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(DUMMY_FS));
+	std::shared_ptr<ge::gl::Shader> grassVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(GRASS_VS));
+	std::shared_ptr<ge::gl::Shader> grassTCS	= std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER, ge::util::loadTextFile(GRASS_TCS));
+	std::shared_ptr<ge::gl::Shader> grassTES	= std::make_shared<ge::gl::Shader>(GL_TESS_EVALUATION_SHADER, ge::util::loadTextFile(GRASS_TES));
+	std::shared_ptr<ge::gl::Shader> grassFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(GRASS_FS));
+	std::shared_ptr<ge::gl::Shader> terrainVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(TERRAIN_VS));
+	std::shared_ptr<ge::gl::Shader> terrainFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(TERRAIN_FS));
+	std::shared_ptr<ge::gl::Shader> dummyVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(DUMMY_VS));
+	std::shared_ptr<ge::gl::Shader> dummyFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(DUMMY_FS));
 
 	/* Shader programs */
-	grassShaderProgram = std::make_shared<ge::gl::Program>(grassVS, grassTCS, grassTES, grassFS);
+	grassShaderProgram	 = std::make_shared<ge::gl::Program>(grassVS, grassTCS, grassTES, grassFS);
 	terrainShaderProgram = std::make_shared<ge::gl::Program>(terrainVS, terrainFS);
-	dummyShaderProgram = std::make_shared<ge::gl::Program>(dummyVS, dummyFS);
+	dummyShaderProgram	 = std::make_shared<ge::gl::Program>(dummyVS, dummyFS);
 
 	// Vertices
+	float wMin = 0.5f;
+	float wMax = 2.0f;
+	float hMin = 2.0f;
+	float hMax = 5.0f;
+	float density = 1.0f;
+	srand(time(0));
+	float r1 = glm::linearRand(0.0f, 1.0f);
+	float w = wMin + r1 * (wMax - wMin);
+	float h = (hMin + r1 * (hMax - hMin)) * density;
+
+	glm::vec4 pc { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	glm::vec4 p1 = pc + glm::vec4(-0.5f * w, 0.0f, 0.0f, 0.0f);
+	glm::vec4 p2 = pc + glm::vec4( 0.5f * w, 0.0f, 0.0f, 0.0f);
+	glm::vec4 p3 = pc + glm::vec4( 0.5f * w,	h, 0.0f, 0.0f);
+	glm::vec4 p4 = pc + glm::vec4(-0.5f * w,	h, 0.0f, 0.0f);
+
+	std::vector<float> grassCenterPos
+	{
+		0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+		0.0f,	 h, 0.0f, 1.0f,
+		0.0f,	 h, 0.0f, 1.0f
+		// x, y, z, w
+	};
+
 	std::vector<float> grassBladePos
 	{
-		-1.0f, 0.0f, 0.0f, 1.0f,
-		 1.0f, 0.0f, 0.0f, 1.0f,
-		 1.0f, 5.0f, 0.0f, 1.0f,
-		-1.0f, 5.0f, 0.0f, 1.0f
+		p1.x, p1.y, p1.z, p1.w,
+		p2.x, p2.y, p2.z, p2.w,
+		p3.x, p3.y, p3.z, p3.w,
+		p4.x, p4.y, p4.z, p4.w
 		// x, y, z, w
 	};
 
 	std::vector<int> grassBladeInd
 	{
 		0, 1, 2, 3
-	};
-
-	std::vector<float> grassCenterPos
-	{
-		0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-		0.0f, 5.0f, 0.0f, 1.0f,
-		0.0f, 5.0f, 0.0f, 1.0f
-		// x, y, z, w
 	};
 
 	std::vector<float> terrainPos
@@ -219,8 +236,8 @@ void OpenGLWindow::render()
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
 	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
-	//gl->glEnable(GL_DEPTH_TEST);
-	gl->glClear(GL_COLOR_BUFFER_BIT /*| GL_DEPTH_BUFFER_BIT */| GL_STENCIL_BUFFER_BIT);
+	gl->glEnable(GL_DEPTH_TEST);
+	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 
 	/* DRAW TERRAIN */
@@ -240,7 +257,7 @@ void OpenGLWindow::render()
 	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	dummyVAO->bind();
-	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	/* DRAW GRASS */
@@ -367,6 +384,12 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (event->key() == Qt::Key_D)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (event->key() == Qt::Key_Shift)
+		cameraPos.y += cameraSpeed;
+	if (event->key() == Qt::Key_Control)
+		cameraPos.y -= cameraSpeed;
+	if (event->key() == Qt::Key_X)
+		cameraPos.y = 0.0f;
 
 	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	mvp = proj * view * model;

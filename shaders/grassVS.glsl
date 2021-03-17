@@ -8,16 +8,14 @@ layout(location = 1) in vec4 centerPosition;
 out vec3 vPosition;
 out vec3 vCenterPosition;
 
-// uniform mat4 uMVP;
-
 void main()
 {
    vec4 newPosition = position;
 
    if (centerPosition.y > 0.1f)
    {   
-      float R1 = -0.1f;
-      float R2 = 0.5f;
+      float R1 = -2.0f;
+      float R2 = 5.5f;
       float b  = 0.5f;
       float newX = position.x + (b * (2 * R1 - 1));
       float newZ = position.z + (b * (2 * R2 - 1));
