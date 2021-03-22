@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QtGui/QWindow>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QLabel>

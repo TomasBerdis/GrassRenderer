@@ -1,13 +1,11 @@
 #include "SettingsWidget.hpp"
 
-#include <iostream>
-#include <QDebug>
-#include "OpenGLWindow.hpp"
-
 SettingsWidget::SettingsWidget(QWidget* parent)
 {
-	setWindowFlag(Qt::Tool, true);
-	setWindowFlag(Qt::WindowStaysOnTopHint, true);
+	QString style = "background-color: white;"
+		"padding: 5px; border: 1px solid #44A41C;"
+		"border-radius: 12px;";
+	setStyleSheet(style);
 	
 
 	tessLabel = new QLabel("Tessellation level: ", this);

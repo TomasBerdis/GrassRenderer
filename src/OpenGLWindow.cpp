@@ -22,6 +22,7 @@ void OpenGLWindow::initializeGL()
 
 	/* Initialize settings widget */
 	settingsWidget = new SettingsWidget(this);
+	settingsWidget->setParent(this);
 	settingsWidget->show();
 	QObject::connect(settingsWidget, SIGNAL(tessLevelChanged(int)), this, SLOT(setTessLevel(int)));
 	QObject::connect(settingsWidget, SIGNAL(rasterizationModeChanged(GLenum)), this, SLOT(setRasterizationMode(GLenum)));
