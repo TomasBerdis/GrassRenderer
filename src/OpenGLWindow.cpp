@@ -1,15 +1,8 @@
 #include "OpenGLWindow.hpp"
 
-OpenGLWindow::OpenGLWindow(QOpenGLWindow *parent)
-	: QOpenGLWindow()
-	, initialized(false)
-	, context(nullptr)
-	, settingsWidget(nullptr)
+OpenGLWindow::OpenGLWindow()
+	: QOpenGLWidget()
 {
-	setSurfaceType(QOpenGLWindow::OpenGLSurface);
-	surfaceFormat.setVersion(4, 5);
-	surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
-	surfaceFormat.setDepthBufferSize(24);
 
 	model = glm::mat4(1.0f);
 	view = glm::mat4(1.0f);
@@ -21,34 +14,14 @@ OpenGLWindow::~OpenGLWindow()
 {
 }
 
-void OpenGLWindow::initialize()
+void OpenGLWindow::initializeGL()
 {
-	if (initialized)
-		return;
-
-	if (!context)
-	{
-		context = new QOpenGLContext(this);
-		context->setFormat(surfaceFormat);
-		if (!context->create())
-		{
-			std::cout << "Failed to create OpenGL context" << std::endl;
-		}
-	}
-
-	context->makeCurrent(this);
+	initializeOpenGLFunctions();
 
 	/* Initialize GPUEngine */
 	ge::gl::init();
 	gl = std::make_shared<ge::gl::Context>();
 	gl->glEnable(GL_DEPTH_TEST);
-	gl->glDepthFunc(GL_LESS);
-
-	
-	qDebug() << context->format();
-	/*gl->glCreateShader(GL_VERTEX_SHADER);*/
-	std::cout << "HERE " << ge::gl::getProcAddress("glCreateShader") << std::endl;
-	std::cout << "HERE " << context->getProcAddress("glCreateShader") << std::endl;
 
 	/* Initialize settings widget */
 	settingsWidget = new SettingsWidget(this);
@@ -286,9 +259,9 @@ void OpenGLWindow::initialize()
 	timer.start();
 
 	// Render ASAP
-	tickTimer = new QTimer(this);
-	QObject::connect(tickTimer, &QTimer::timeout, this, &OpenGLWindow::renderNow);
-	tickTimer->start(0);
+	/*tickTimer = new QTimer(this);
+	QObject::connect(tickTimer, &QTimer::timeout, this, &OpenGLWindow::paintGL);
+	tickTimer->start(0);*/
 
 	gl->glGenTextures(1, &debugTex);
 	gl->glBindTexture(GL_TEXTURE_2D, debugTex);
@@ -321,8 +294,6 @@ void OpenGLWindow::initialize()
 
 
 	stbi_image_free(data);
-
-	initialized = true;
 }
 
 void OpenGLWindow::setTessLevel(int tessLevel)
@@ -330,25 +301,28 @@ void OpenGLWindow::setTessLevel(int tessLevel)
 	this->tessLevel = tessLevel;
 	//DEBUG
 	std::cout << "Tessellation Level: " << tessLevel << std::endl;
-	renderNow();
+	update();
 }
 
 void OpenGLWindow::setRasterizationMode(GLenum mode)
 {
 	std::cout << "Rasterization mode changed: " << mode << std::endl;
 	rasterizationMode = mode;
-	renderNow();
+	update();
 }
 
-void OpenGLWindow::render()
+void OpenGLWindow::resizeGL(int w, int h)
+{
+	;
+}
+
+void OpenGLWindow::paintGL()
 {
 	/* RENDER CALL BEGIN */
 	// Update width and height
 	windowWidth  = width();
 	windowHeight = height();
 	const qreal retinaScale = devicePixelRatio();
-
-	context->makeCurrent(this);
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
 	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -386,10 +360,6 @@ void OpenGLWindow::render()
 
 	/* RENDER CALL END */
 	printError();
-
-	context->swapBuffers(this);
-	context->makeCurrent(this);
-	context->format().setSwapInterval(0);
 }
 
 void OpenGLWindow::printError() const
@@ -401,37 +371,6 @@ void OpenGLWindow::printError() const
 	}
 }
 
-void OpenGLWindow::renderNow()
-{
-	if (!isExposed())
-		return;
-	if (!initialized)
-		initialize();
-
-	render();
-}
-
-bool OpenGLWindow::event(QEvent *event)
-{
-	switch (event->type())
-	{
-	case QEvent::UpdateRequest:
-		renderNow();
-		return true;
-	case QEvent::WindowStateChange:
-		renderNow();
-		return true;
-	default:
-		return QWindow::event(event);
-	}
-}
-
-void OpenGLWindow::exposeEvent(QExposeEvent *event)
-{
-	if (isExposed())
-		renderNow();
-}
-
 void OpenGLWindow::wheelEvent(QWheelEvent *event)
 {
 	float angle = event->angleDelta().y();
@@ -441,18 +380,16 @@ void OpenGLWindow::wheelEvent(QWheelEvent *event)
 		fov = 1.0f;
 	if (fov > 120.0f)
 		fov = 120.0f;
+
 	proj = glm::perspective(glm::radians(fov), (float)width() / (float)height(), 0.1f, 1000.0f);
 	mvp = proj * view * model;
-
-	event->accept();
-	renderNow();
+	update();
 }
 
 void OpenGLWindow::mousePressEvent(QMouseEvent *event)
 {
 	// save position
 	clickStartPos = event->pos();
-	event->accept();
 }
 
 void OpenGLWindow::mouseMoveEvent(QMouseEvent *event)
@@ -463,14 +400,6 @@ void OpenGLWindow::mouseMoveEvent(QMouseEvent *event)
 
 	if (event->buttons() & Qt::LeftButton)
 	{
-		/* Prevent sudden jump at the beginning */
-		/*if (firstClick)
-		{
-			clickStartPos = movePos;
-			horizontalDelta = movePos.x() - clickStartPos.x();
-			verticalDelta = movePos.y() - clickStartPos.y();
-			firstClick = false;
-		}*/
 		yaw += horizontalDelta * 0.1;
 		pitch += verticalDelta * 0.1;
 
@@ -494,8 +423,7 @@ void OpenGLWindow::mouseMoveEvent(QMouseEvent *event)
 
 	mvp = proj * view * model;
 	clickStartPos = event->pos();
-	event->accept();
-	renderNow();
+	update();
 }
 
 void OpenGLWindow::keyPressEvent(QKeyEvent *event)
@@ -518,6 +446,7 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 
 	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	mvp = proj * view * model;
+	update();
 }
 
 float OpenGLWindow::sign(float f)

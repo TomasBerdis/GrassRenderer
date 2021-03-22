@@ -12,7 +12,7 @@ class SettingsWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	SettingsWidget(QWindow* parent);
+	SettingsWidget(QWidget* parent);
 
 	QGridLayout *gridLayout;
 	QLabel *tessLabel;

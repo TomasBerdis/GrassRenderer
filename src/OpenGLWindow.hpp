@@ -1,7 +1,7 @@
 #pragma once
 
-#include <QtGui/QOpenGLWindow>
-#include <QtGui/QOpenGLContext>
+#include <QOpenGLWidget>
+#include <QOpenGLContext>
 #include <QtGui/qevent.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qtimer.h>
@@ -23,28 +23,25 @@
 #include "SettingsWidget.hpp"
 #include "../lib/stb_image.h"
 
-class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
+class OpenGLWindow : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core
 {
 	Q_OBJECT
 public:
-	explicit OpenGLWindow(QOpenGLWindow *parent = nullptr);
-
+	explicit OpenGLWindow();
 	~OpenGLWindow();
-
-	void render();
-	void printError() const;
-	void initialize();
 
 	SettingsWidget *settingsWidget;
 
 public slots:
-	void renderNow();
 	void setTessLevel(int tessLevel);
 	void setRasterizationMode(GLenum mode);
 
 protected:
-	bool event(QEvent* event) override;
-	void exposeEvent(QExposeEvent* event) override;
+	void initializeGL() override;
+	void resizeGL(int w, int h) override;
+	void paintGL() override;
+
+	void printError() const;
 	void wheelEvent(QWheelEvent* event);
 	void mousePressEvent(QMouseEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);
@@ -74,12 +71,15 @@ private:
 	std::shared_ptr<ge::gl::Buffer> dummyTexCoordBuffer;
 
 	std::shared_ptr<ge::gl::Context>	 gl;
+
 	std::shared_ptr<ge::gl::Program>	 grassShaderProgram;
 	std::shared_ptr<ge::gl::Program>	 terrainShaderProgram;
 	std::shared_ptr<ge::gl::Program>	 dummyShaderProgram;
+
 	std::shared_ptr<ge::gl::VertexArray> grassVAO;
 	std::shared_ptr<ge::gl::VertexArray> terrainVAO;
 	std::shared_ptr<ge::gl::VertexArray> dummyVAO;
+
 	QOpenGLContext* context;
 	QSurfaceFormat  surfaceFormat;
 
@@ -94,7 +94,6 @@ private:
 	float yaw   = -90.0;
 	float pitch =   0.0;
 	float fov	=  45.0;
-	bool firstClick = true;
 
 	QPointF clickStartPos;
 

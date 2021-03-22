@@ -4,7 +4,7 @@
 #include <QDebug>
 #include "OpenGLWindow.hpp"
 
-SettingsWidget::SettingsWidget(QWindow* parent)
+SettingsWidget::SettingsWidget(QWidget* parent)
 {
 	setWindowFlag(Qt::Tool, true);
 	setWindowFlag(Qt::WindowStaysOnTopHint, true);
