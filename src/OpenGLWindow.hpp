@@ -5,8 +5,11 @@
 #include <QtGui/qevent.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qtimer.h>
+#include <QOpenGLFunctions_4_5_Core>
+#include <QDebug>
 
 #include <geGL/geGL.h>
+#include <geGL/Texture.h>
 #include <geUtil/Text.h>
 
 #include <glm/glm.hpp>
@@ -18,8 +21,9 @@
 #include <iostream>
 
 #include "SettingsWidget.hpp"
+#include "../lib/stb_image.h"
 
-class OpenGLWindow : public QOpenGLWindow
+class OpenGLWindow : public QOpenGLWindow, protected QOpenGLFunctions_4_5_Core
 {
 	Q_OBJECT
 public:
@@ -67,6 +71,7 @@ private:
 	std::shared_ptr<ge::gl::Buffer> terrainPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> terrainElementBuffer;
 	std::shared_ptr<ge::gl::Buffer> dummyPositionBuffer;
+	std::shared_ptr<ge::gl::Buffer> dummyTexCoordBuffer;
 
 	std::shared_ptr<ge::gl::Context>	 gl;
 	std::shared_ptr<ge::gl::Program>	 grassShaderProgram;
@@ -83,12 +88,17 @@ private:
 	glm::mat4 proj;
 	glm::mat4 mvp;
 
-	glm::vec3 cameraPos	  = glm::vec3(0.0f, 0.0f, 3.0f);
+	glm::vec3 cameraPos	  = glm::vec3(0.0f, 2.0f, 3.0f);
 	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 cameraUp	  = glm::vec3(0.0f, 1.0f, 0.0f);
-	float yaw   = 0.0;
-	float pitch = 0.0;
-	float fov	= 45.0;
+	float yaw   = -90.0;
+	float pitch =   0.0;
+	float fov	=  45.0;
+	bool firstClick = true;
 
 	QPointF clickStartPos;
+
+	unsigned int grassAlphaTex;
+	unsigned int debugTex;
+	std::shared_ptr<ge::gl::Texture> grassAlphaTexture;
 };

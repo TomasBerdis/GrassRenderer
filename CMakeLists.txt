@@ -6,12 +6,12 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(GPUEngine COMPONENTS REQUIRED geGL geUtil)
 find_package(Qt5 COMPONENTS REQUIRED Gui Widgets)
-# find_package(glm 0.9.9 REQUIRED)
 
 set(sources
     src/main.cpp
     src/OpenGLWindow.cpp src/OpenGLWindow.hpp
-    src/SettingsWidget.cpp src/SettingsWidget.hpp)
+    src/SettingsWidget.cpp src/SettingsWidget.hpp
+    lib/stb_image.cpp lib/stb_image.h)
 
 find_file(grassVS grassVS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
@@ -37,12 +37,19 @@ find_file(dummyVS dummyVS.glsl
 find_file(dummyFS dummyFS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
+find_file(debugTexture debug_texture.png
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/res
+)
+find_file(grassAlpha grass_alpha.png
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/res
+)
 
 add_executable(${PROJECT_NAME} ${sources})
 target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Widgets geGL geUtil)
 target_compile_definitions(${PROJECT_NAME} PUBLIC   "GRASS_VS=\"${grassVS}\"" "GRASS_FS=\"${grassFS}\"" "GRASS_TCS=\"${grassTCS}\"" "GRASS_TES=\"${grassTES}\""
                                                     "TERRAIN_VS=\"${terrainVS}\"" "TERRAIN_FS=\"${terrainFS}\""
-                                                    "DUMMY_VS=\"${dummyVS}\"" "DUMMY_FS=\"${dummyFS}\"")
+                                                    "DUMMY_VS=\"${dummyVS}\"" "DUMMY_FS=\"${dummyFS}\""
+                                                    "DEBUG_TEXTURE=\"${debugTexture}\"" "GRASS_ALPHA=\"${grassAlpha}\"")
 
 # setting up the MSVC helper var
 get_target_property(Qt5dllPath Qt5::Gui IMPORTED_LOCATION_RELEASE)

@@ -9,6 +9,8 @@ OpenGLWindow::OpenGLWindow(QOpenGLWindow *parent)
 	setSurfaceType(QOpenGLWindow::OpenGLSurface);
 	surfaceFormat.setVersion(4, 5);
 	surfaceFormat.setProfile(QSurfaceFormat::CoreProfile);
+	surfaceFormat.setDepthBufferSize(24);
+
 	model = glm::mat4(1.0f);
 	view = glm::mat4(1.0f);
 	proj = glm::mat4(1.0f);
@@ -30,7 +32,7 @@ void OpenGLWindow::initialize()
 		context->setFormat(surfaceFormat);
 		if (!context->create())
 		{
-			// fail
+			std::cout << "Failed to create OpenGL context" << std::endl;
 		}
 	}
 
@@ -39,6 +41,14 @@ void OpenGLWindow::initialize()
 	/* Initialize GPUEngine */
 	ge::gl::init();
 	gl = std::make_shared<ge::gl::Context>();
+	gl->glEnable(GL_DEPTH_TEST);
+	gl->glDepthFunc(GL_LESS);
+
+	
+	qDebug() << context->format();
+	/*gl->glCreateShader(GL_VERTEX_SHADER);*/
+	std::cout << "HERE " << ge::gl::getProcAddress("glCreateShader") << std::endl;
+	std::cout << "HERE " << context->getProcAddress("glCreateShader") << std::endl;
 
 	/* Initialize settings widget */
 	settingsWidget = new SettingsWidget(this);
@@ -118,10 +128,10 @@ void OpenGLWindow::initialize()
 	std::vector<float> grassTexCoord
 	{
 		0.0f, 0.0f, r2, r3,
-		0.0f, 0.0f, r2, r3,
-		0.0f, 0.0f, r2, r3,
-		0.0f, 0.0f, r2, r3
-		// u, v, r2, r3
+		1.0f, 0.0f, r2, r3,
+		1.0f, 1.0f, r2, r3,
+		0.0f, 1.0f, r2, r3
+		// s, t, r2, r3
 	};
 	std::vector<float> grassRandoms
 	{
@@ -195,6 +205,51 @@ void OpenGLWindow::initialize()
 		-0.5f,  0.5f, -0.5f,  1.0f
 	};
 
+	std::vector<float> dummyTexCoord
+	{
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+
+		1.0f, 0.0f,
+		1.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f,
+
+		0.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+		1.0f, 0.0f,
+		0.0f, 0.0f,
+		0.0f, 1.0f
+	};
+
 	grassPositionBuffer		  = std::make_shared<ge::gl::Buffer>(grassBladePos.size() * sizeof(float), grassBladePos.data());
 	grassCenterPositionBuffer = std::make_shared<ge::gl::Buffer>(grassCenterPos.size() * sizeof(float), grassCenterPos.data());
 	grassTexCoordBuffer		  = std::make_shared<ge::gl::Buffer>(grassTexCoord.size() * sizeof(float), grassTexCoord.data());
@@ -216,13 +271,13 @@ void OpenGLWindow::initialize()
 	terrainVAO->addAttrib(terrainPositionBuffer, 0, 4, GL_FLOAT);
 
 	dummyPositionBuffer = std::make_shared<ge::gl::Buffer>(dummyPos.size() * sizeof(float), dummyPos.data());
+	dummyTexCoordBuffer = std::make_shared<ge::gl::Buffer>(dummyTexCoord.size() * sizeof(float), dummyTexCoord.data());
 
 	dummyVAO = std::make_shared<ge::gl::VertexArray>();
 	dummyVAO->addAttrib(dummyPositionBuffer, 0, 4, GL_FLOAT);
+	dummyVAO->addAttrib(dummyTexCoordBuffer, 1, 2, GL_FLOAT);
 
 	/* Transformation matrices */
-	cameraPos.y = 2.0;
-	cameraPos.z = 3.0;
 	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	proj = glm::perspective(glm::radians(fov), (float)width() / (float)height(), 0.1f, 1000.0f);
 	mvp  = proj * view * model;
@@ -234,6 +289,38 @@ void OpenGLWindow::initialize()
 	tickTimer = new QTimer(this);
 	QObject::connect(tickTimer, &QTimer::timeout, this, &OpenGLWindow::renderNow);
 	tickTimer->start(0);
+
+	gl->glGenTextures(1, &debugTex);
+	gl->glBindTexture(GL_TEXTURE_2D, debugTex);
+	// Texture parameters
+	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
+
+	unsigned char *data = stbi_load(DEBUG_TEXTURE, &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+	}
+	else
+		std::cout << "Texture loading error." << std::endl;
+
+	gl->glGenTextures(1, &grassAlphaTex);
+	gl->glBindTexture(GL_TEXTURE_2D, grassAlphaTex);
+	data = stbi_load(GRASS_ALPHA, &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+	else
+		std::cout << "Texture loading error." << std::endl;
+
+
+	stbi_image_free(data);
 
 	initialized = true;
 }
@@ -265,48 +352,43 @@ void OpenGLWindow::render()
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
 	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
-	gl->glEnable(GL_DEPTH_TEST);
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 
 	/* DRAW TERRAIN */
 	terrainShaderProgram->use();
-
-	// Uniforms
+	terrainVAO->bind();
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
-	terrainVAO->bind();
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	/* DRAW DUMMY */
-	//dummyShaderProgram->use();
+	dummyShaderProgram->use();
+	dummyVAO->bind();
+	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
-	//// Uniforms
-	//dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-
-	//dummyVAO->bind();
-	//gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	//gl->glDrawArrays(GL_TRIANGLES, 0, 36);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
+	gl->glBindTexture(GL_TEXTURE_2D, debugTex);
+	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	/* DRAW GRASS */
 	grassShaderProgram->use();
-
-	// Uniforms
+	grassVAO->bind();
 	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 	grassShaderProgram->set1i("uTessLevel", tessLevel);
 	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
 
-	grassVAO->bind();
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
-
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+	gl->glBindTexture(GL_TEXTURE_2D, debugTex);
 	gl->glDrawElements(GL_PATCHES, 4, GL_UNSIGNED_INT, nullptr);
 
 	/* RENDER CALL END */
 	printError();
 
 	context->swapBuffers(this);
+	context->makeCurrent(this);
 	context->format().setSwapInterval(0);
 }
 
@@ -381,8 +463,21 @@ void OpenGLWindow::mouseMoveEvent(QMouseEvent *event)
 
 	if (event->buttons() & Qt::LeftButton)
 	{
+		/* Prevent sudden jump at the beginning */
+		/*if (firstClick)
+		{
+			clickStartPos = movePos;
+			horizontalDelta = movePos.x() - clickStartPos.x();
+			verticalDelta = movePos.y() - clickStartPos.y();
+			firstClick = false;
+		}*/
 		yaw += horizontalDelta * 0.1;
 		pitch += verticalDelta * 0.1;
+
+		std::cout << "Yaw: " << yaw << ", Pitch: " << pitch << std::endl;
+		std::cout << "cameraFront: " << "X: " << cameraFront.x
+									 << "Y: " << cameraFront.y
+									 << "Z: " << cameraFront.z << std::endl;
 
 		if (pitch > 89.0f)
 			pitch = 89.0f;

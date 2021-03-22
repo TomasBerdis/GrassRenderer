@@ -12,7 +12,7 @@ in vec4 vRandoms[];
 
 out vec4 tcPosition[];
 out vec4 tcCenterPosition[];
-out vec4 tcTexCoord[];
+patch out vec4 tcTexCoord;
 out vec4 tcRandoms[];
 
 uniform int uTessLevel;
@@ -50,6 +50,6 @@ void main()
 
     tcPosition[gl_InvocationID]       = vPosition[gl_InvocationID];
     tcCenterPosition[gl_InvocationID] = vCenterPosition[gl_InvocationID];
-    tcTexCoord[gl_InvocationID]       = vTexCoord[gl_InvocationID];
+    tcTexCoord                        = vTexCoord[gl_InvocationID];
     tcRandoms[gl_InvocationID]        = vRandoms[gl_InvocationID];
 }

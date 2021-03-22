@@ -1,8 +1,10 @@
 #version 450 core
 
+in vec2 vTexCoord;
+uniform sampler2D debugTexture;
 out vec4 color;
 
 void main()
 {
-    color = vec4(0.545, 0.271, 1.0, 1.0);
+    color = texture(debugTexture, vTexCoord);
 }
