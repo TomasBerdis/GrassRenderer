@@ -284,15 +284,13 @@ void OpenGLWindow::setRasterizationMode(GLenum mode)
 
 void OpenGLWindow::resizeGL(int w, int h)
 {
-	;
+	windowWidth = w;
+	windowHeight = h;
 }
 
 void OpenGLWindow::paintGL()
 {
 	/* RENDER CALL BEGIN */
-	// Update width and height
-	windowWidth  = width();
-	windowHeight = height();
 	const qreal retinaScale = devicePixelRatio();
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
