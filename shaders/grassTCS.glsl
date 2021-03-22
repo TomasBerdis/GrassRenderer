@@ -3,8 +3,6 @@
 // output patch with vertex count of 4
 layout(vertices = 4) out;
 
-patch out vec3 controlPoints[2];
-
 in vec4 vPosition[];
 in vec4 vCenterPosition[];
 in vec4 vTexCoord[];
@@ -12,8 +10,9 @@ in vec4 vRandoms[];
 
 out vec4 tcPosition[];
 out vec4 tcCenterPosition[];
-patch out vec4 tcTexCoord;
+out vec4 tcTexCoord[];
 out vec4 tcRandoms[];
+patch out vec3 controlPoints[2];
 
 uniform int uTessLevel;
 uniform mat4 uMVP;
@@ -50,6 +49,6 @@ void main()
 
     tcPosition[gl_InvocationID]       = vPosition[gl_InvocationID];
     tcCenterPosition[gl_InvocationID] = vCenterPosition[gl_InvocationID];
-    tcTexCoord                        = vTexCoord[gl_InvocationID];
+    tcTexCoord[gl_InvocationID]       = vTexCoord[gl_InvocationID];
     tcRandoms[gl_InvocationID]        = vRandoms[gl_InvocationID];
 }

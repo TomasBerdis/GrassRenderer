@@ -2,12 +2,11 @@
 
 layout(quads, equal_spacing, cw) in;
 
-patch in vec3 controlPoints[2];
-
 in vec4 tcPosition[];
 in vec4 tcCenterPosition[];
-patch in vec4 tcTexCoord;
+in vec4 tcTexCoord[];
 in vec4 tcRandoms[];
+patch in vec3 controlPoints[2];
 
 out vec4 tePosition;
 out vec4 teCenterPosition;
@@ -43,9 +42,9 @@ void main()
 	float u = gl_TessCoord.x;
 	float v = gl_TessCoord.y;
 
-	// vec2 a = mix(tcTexCoord[0].xy, tcTexCoord[3].xy, u);
-	// vec2 b = mix(tcTexCoord[1].xy, tcTexCoord[2].xy, u);
-	// teTexCoord.xy = mix(a, b, v);
+	vec2 a = mix(tcTexCoord[3].xy, tcTexCoord[2].xy, u);
+	vec2 b = mix(tcTexCoord[0].xy, tcTexCoord[1].xy, u);
+	teTexCoord.xy = mix(a, b, v);
 
 	SplineData leftSpline  = calcSplinePos(tcPosition[0].xyz, controlPoints[0], tcPosition[3].xyz, v);
 	SplineData rightSpline = calcSplinePos(tcPosition[1].xyz, controlPoints[1], tcPosition[2].xyz, v);
@@ -56,6 +55,5 @@ void main()
 
     tePosition 		 = gl_Position;
     teCenterPosition = tcCenterPosition[0];
-    teTexCoord		 = tcTexCoord;
     teRandoms		 = tcRandoms[0];
 }

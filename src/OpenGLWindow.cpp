@@ -22,6 +22,8 @@ void OpenGLWindow::initializeGL()
 	ge::gl::init();
 	gl = std::make_shared<ge::gl::Context>();
 	gl->glEnable(GL_DEPTH_TEST);
+	gl->glEnable(GL_BLEND);
+	gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	/* Initialize settings widget */
 	settingsWidget = new SettingsWidget(this);
@@ -264,7 +266,10 @@ void OpenGLWindow::initializeGL()
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	debugTexture = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
-	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA).mirrored());
+	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA));
+
+	std::cout << "Width: " << grassAlphaTexture->width() << std::endl;
+	std::cout << "Height: " << grassAlphaTexture->height() << std::endl;
 }
 
 void OpenGLWindow::setTessLevel(int tessLevel)
