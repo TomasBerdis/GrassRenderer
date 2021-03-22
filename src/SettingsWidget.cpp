@@ -6,7 +6,6 @@ SettingsWidget::SettingsWidget(QWidget* parent)
 		"padding: 5px; border: 1px solid #44A41C;"
 		"border-radius: 12px;";
 	setStyleSheet(style);
-	
 
 	tessLabel = new QLabel("Tessellation level: ", this);
 	tessLabel->setFont(QFont("Arial", 14, QFont::Bold));
@@ -31,7 +30,7 @@ SettingsWidget::SettingsWidget(QWidget* parent)
 
 	gridLayout = new QGridLayout(this);
 	gridLayout->addWidget(tessLabel, 0, 0);
-	gridLayout->addWidget(tessSlider, 0, 1);
+	gridLayout->addWidget(tessSlider, 0, 1, 1, 3);
 	gridLayout->addWidget(rasterModeLabel, 1, 0);
 	gridLayout->addWidget(pointModeBtn, 1, 1);
 	gridLayout->addWidget(lineModeBtn, 1, 2);
