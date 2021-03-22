@@ -22,7 +22,7 @@
 #include <iostream>
 
 #include "SettingsWidget.hpp"
-#include "../lib/stb_image.h"
+#include "Camera.hpp"
 #include <QOpenGLTexture>
 
 class OpenGLWindow : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core
@@ -44,21 +44,24 @@ protected:
 	void paintGL() override;
 
 	void printError() const;
+
+	/* Event handlers */
 	void wheelEvent(QWheelEvent* event);
 	void mousePressEvent(QMouseEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);
 	void keyPressEvent(QKeyEvent* event);
-	float sign(float f);
 
 private:
 	bool initialized;
 	int tessLevel	 = 8;
 	float maxBendingFactor = 0.5;
-	int windowWidth  = 0;
-	int windowHeight = 0;
+	int windowWidth;
+	int windowHeight;
 
-	QElapsedTimer timer;
+	Camera *camera;
+
 	QTimer *tickTimer;
+	QElapsedTimer timer;
 
 	GLenum rasterizationMode = GL_FILL;
 
@@ -84,18 +87,6 @@ private:
 
 	QOpenGLContext* context;
 	QSurfaceFormat  surfaceFormat;
-
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 proj;
-	glm::mat4 mvp;
-
-	glm::vec3 cameraPos	  = glm::vec3(0.0f, 2.0f, 3.0f);
-	glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-	glm::vec3 cameraUp	  = glm::vec3(0.0f, 1.0f, 0.0f);
-	float yaw   = -90.0;
-	float pitch =   0.0;
-	float fov	=  45.0;
 
 	QPointF clickStartPos;
 

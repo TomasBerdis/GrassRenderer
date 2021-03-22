@@ -3,11 +3,6 @@
 OpenGLWindow::OpenGLWindow()
 	: QOpenGLWidget()
 {
-
-	model = glm::mat4(1.0f);
-	view = glm::mat4(1.0f);
-	proj = glm::mat4(1.0f);
-	mvp = proj * view * model;
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -115,12 +110,10 @@ void OpenGLWindow::initializeGL()
 		r4, r5, r6, r7,
 		r4, r5, r6, r7
 	};
-
 	std::vector<int> grassBladeInd
 	{
 		0, 1, 2, 3
 	};
-
 	std::vector<float> terrainPos
 	{
 		-100.0, 0.0, 100.0, 1.0,
@@ -128,13 +121,11 @@ void OpenGLWindow::initializeGL()
 		 100.0, 0.0,-100.0, 1.0,
 		-100.0, 0.0,-100.0, 1.0
 	};
-
 	std::vector<int> terrainInd
 	{
 		0, 1, 2,
 		2, 3, 0
 	};
-
 	std::vector<float> dummyPos
 	{
 		-0.5f, -0.5f, -0.5f,  1.0f,
@@ -179,7 +170,6 @@ void OpenGLWindow::initializeGL()
 		-0.5f,  0.5f,  0.5f,  1.0f,
 		-0.5f,  0.5f, -0.5f,  1.0f
 	};
-
 	std::vector<float> dummyTexCoord
 	{
 		0.0f, 0.0f,
@@ -252,10 +242,8 @@ void OpenGLWindow::initializeGL()
 	dummyVAO->addAttrib(dummyPositionBuffer, 0, 4, GL_FLOAT);
 	dummyVAO->addAttrib(dummyTexCoordBuffer, 1, 2, GL_FLOAT);
 
-	/* Transformation matrices */
-	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	proj = glm::perspective(glm::radians(fov), (float)width() / (float)height(), 0.1f, 1000.0f);
-	mvp  = proj * view * model;
+	/* Camera */
+	camera = new Camera(glm::vec3(0.0f, 2.0f, 3.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
 
 	// Elapsed time since initialization
 	timer.start();
@@ -267,9 +255,6 @@ void OpenGLWindow::initializeGL()
 
 	debugTexture = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
 	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA));
-
-	std::cout << "Width: " << grassAlphaTexture->width() << std::endl;
-	std::cout << "Height: " << grassAlphaTexture->height() << std::endl;
 }
 
 void OpenGLWindow::setTessLevel(int tessLevel)
@@ -302,6 +287,7 @@ void OpenGLWindow::paintGL()
 	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+	glm::mat4 mvp = camera->getProjectionMatrix() * camera->getViewMatrix();
 
 	/* DRAW TERRAIN */
 	terrainShaderProgram->use();
@@ -312,13 +298,13 @@ void OpenGLWindow::paintGL()
 	gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	/* DRAW DUMMY */
-	dummyShaderProgram->use();
+	/*dummyShaderProgram->use();
 	dummyVAO->bind();
 	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	debugTexture->bind();
-	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
+	gl->glDrawArrays(GL_TRIANGLES, 0, 36);*/
 
 	/* DRAW GRASS */
 	grassShaderProgram->use();
@@ -348,15 +334,11 @@ void OpenGLWindow::printError() const
 void OpenGLWindow::wheelEvent(QWheelEvent *event)
 {
 	float angle = event->angleDelta().y();
-	float scale = (angle > 0) ? 0.8 : 1.25;
-	fov *= scale;
-	if (fov < 1.0f)
-		fov = 1.0f;
-	if (fov > 120.0f)
-		fov = 120.0f;
+	if (angle > 0)
+		camera->decreaseFov(10);
+	else
+		camera->increaseFov(10);
 
-	proj = glm::perspective(glm::radians(fov), (float)width() / (float)height(), 0.1f, 1000.0f);
-	mvp = proj * view * model;
 	update();
 }
 
@@ -368,34 +350,13 @@ void OpenGLWindow::mousePressEvent(QMouseEvent *event)
 
 void OpenGLWindow::mouseMoveEvent(QMouseEvent *event)
 {
-	QPointF movePos = event->pos();
+	QPointF movePos		  = event->pos();
 	float horizontalDelta = movePos.x() - clickStartPos.x();
-	float verticalDelta = movePos.y() - clickStartPos.y();
+	float verticalDelta   = movePos.y() - clickStartPos.y();
 
 	if (event->buttons() & Qt::LeftButton)
-	{
-		yaw += horizontalDelta * 0.1;
-		pitch += verticalDelta * 0.1;
+		camera->rotateCamera(horizontalDelta, verticalDelta);
 
-		std::cout << "Yaw: " << yaw << ", Pitch: " << pitch << std::endl;
-		std::cout << "cameraFront: " << "X: " << cameraFront.x
-									 << "Y: " << cameraFront.y
-									 << "Z: " << cameraFront.z << std::endl;
-
-		if (pitch > 89.0f)
-			pitch = 89.0f;
-		if (pitch < -89.0f)
-			pitch = -89.0f;
-
-		glm::vec3 direction;
-		direction.x = cos(glm::radians(-yaw)) * cos(glm::radians(pitch));
-		direction.y = sin(glm::radians(pitch));
-		direction.z = sin(glm::radians(-yaw)) * cos(glm::radians(pitch));
-		cameraFront = glm::normalize(direction);
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	}
-
-	mvp = proj * view * model;
 	clickStartPos = event->pos();
 	update();
 }
@@ -404,31 +365,17 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 {
 	float cameraSpeed = 1.0f;
 	if (event->key() == Qt::Key_W)
-		cameraPos += cameraSpeed * cameraFront;
+		camera->moveCamera(Camera::Direction::FORWARDS, cameraSpeed);
 	if (event->key() == Qt::Key_S)
-		cameraPos -= cameraSpeed * cameraFront;
+		camera->moveCamera(Camera::Direction::BACKWARDS, cameraSpeed);
 	if (event->key() == Qt::Key_A)
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		camera->moveCamera(Camera::Direction::LEFT, cameraSpeed);
 	if (event->key() == Qt::Key_D)
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		camera->moveCamera(Camera::Direction::RIGHT, cameraSpeed);
 	if (event->key() == Qt::Key_Shift)
-		cameraPos.y += cameraSpeed;
+		camera->moveCamera(Camera::Direction::UP, cameraSpeed);
 	if (event->key() == Qt::Key_Control)
-		cameraPos.y -= cameraSpeed;
-	if (event->key() == Qt::Key_X)
-		cameraPos.y = 0.0f;
+		camera->moveCamera(Camera::Direction::DOWN, cameraSpeed);
 
-	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-	mvp = proj * view * model;
 	update();
-}
-
-float OpenGLWindow::sign(float f)
-{
-	if (f > 0)
-		return 1.0f;
-	else if (f < 0)
-		return -1.0f;
-	else
-		return 0.0f;
 }
