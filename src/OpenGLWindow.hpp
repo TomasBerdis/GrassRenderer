@@ -7,6 +7,7 @@
 #include <QtCore/qtimer.h>
 #include <QOpenGLFunctions_4_5_Core>
 #include <QDebug>
+#include <QImage>
 
 #include <geGL/geGL.h>
 #include <geGL/Texture.h>
@@ -22,6 +23,7 @@
 
 #include "SettingsWidget.hpp"
 #include "../lib/stb_image.h"
+#include <QOpenGLTexture>
 
 class OpenGLWindow : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core
 {
@@ -97,7 +99,6 @@ private:
 
 	QPointF clickStartPos;
 
-	unsigned int grassAlphaTex;
-	unsigned int debugTex;
-	std::shared_ptr<ge::gl::Texture> grassAlphaTexture;
+	QOpenGLTexture *debugTexture;
+	QOpenGLTexture *grassAlphaTexture;
 };

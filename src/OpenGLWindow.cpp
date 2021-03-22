@@ -258,42 +258,13 @@ void OpenGLWindow::initializeGL()
 	// Elapsed time since initialization
 	timer.start();
 
-	// Render ASAP
-	/*tickTimer = new QTimer(this);
-	QObject::connect(tickTimer, &QTimer::timeout, this, &OpenGLWindow::paintGL);
-	tickTimer->start(0);*/
-
-	gl->glGenTextures(1, &debugTex);
-	gl->glBindTexture(GL_TEXTURE_2D, debugTex);
-	// Texture parameters
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
-
-	unsigned char *data = stbi_load(DEBUG_TEXTURE, &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-	}
-	else
-		std::cout << "Texture loading error." << std::endl;
-
-	gl->glGenTextures(1, &grassAlphaTex);
-	gl->glBindTexture(GL_TEXTURE_2D, grassAlphaTex);
-	data = stbi_load(GRASS_ALPHA, &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	}
-	else
-		std::cout << "Texture loading error." << std::endl;
-
-
-	stbi_image_free(data);
+	debugTexture = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
+	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA).mirrored());
 }
 
 void OpenGLWindow::setTessLevel(int tessLevel)
@@ -343,7 +314,7 @@ void OpenGLWindow::paintGL()
 	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
-	gl->glBindTexture(GL_TEXTURE_2D, debugTex);
+	debugTexture->bind();
 	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	/* DRAW GRASS */
@@ -355,7 +326,7 @@ void OpenGLWindow::paintGL()
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
-	gl->glBindTexture(GL_TEXTURE_2D, debugTex);
+	grassAlphaTexture->bind();
 	gl->glDrawElements(GL_PATCHES, 4, GL_UNSIGNED_INT, nullptr);
 
 	/* RENDER CALL END */
