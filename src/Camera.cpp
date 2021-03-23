@@ -6,7 +6,7 @@ Camera::Camera(glm::vec3 cameraPosition, float fov, float aspectRatio, float nea
 	frontVector = glm::vec3(0.0f, 0.0f, -1.0f);
 	upVector = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	yaw = -90.0;
+	yaw =   0.0;
 	pitch = 0.0;
 
 	minFov = 1.0f;

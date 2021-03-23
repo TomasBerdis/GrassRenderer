@@ -51,6 +51,10 @@ void OpenGLWindow::initializeGL()
 	terrainShaderProgram = std::make_shared<ge::gl::Program>(terrainVS, terrainFS);
 	dummyShaderProgram	 = std::make_shared<ge::gl::Program>(dummyVS, dummyFS);
 
+	/* Generating patches */
+	std::vector<glm::vec3> *patchPositions = generatePatchPositions(glm::vec3(0.f, 0.f, 0.f), 200, 25);
+	std::cout << "Number of patches: " << patchPositions->size() << std::endl;
+
 	// Generating vertices
 	srand(time(0));	// reset generator seed
 	float r = glm::linearRand(0.0f, 1.0f);
@@ -244,7 +248,8 @@ void OpenGLWindow::initializeGL()
 	dummyVAO->addAttrib(dummyTexCoordBuffer, 1, 2, GL_FLOAT);
 
 	/* Camera */
-	camera = new Camera(glm::vec3(0.0f, 2.0f, 3.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
+	camera = new Camera(glm::vec3(0.0f, 2.0f, 4.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
+	camera->rotateCamera(900.0f, -100.0f);	// reset rotation
 
 	// Elapsed time since initialization
 	timer.start();
@@ -330,6 +335,26 @@ void OpenGLWindow::printError() const
 	{
 		std::cout << err << std::endl;
 	}
+}
+
+std::vector<glm::vec3> *OpenGLWindow::generatePatchPositions(glm::vec3 worldCenterPos, float fieldSize, float patchSize)
+{
+	std::vector<glm::vec3> *patchPositions = new std::vector<glm::vec3>();
+
+	/* Calculate first patch's position in lower left corner of a field */
+	glm::vec3 startPos = worldCenterPos - glm::vec3(fieldSize / 2, 0.0f , fieldSize / 2);
+	startPos = startPos + glm::vec3(patchSize / 2, 0.0f, patchSize / 2);	// we want the center of the patch
+
+	int patchesInRowOrCol = fieldSize / patchSize;
+	for (size_t row = 0; row < patchesInRowOrCol; row++)
+	{
+		for (size_t col = 0; col < patchesInRowOrCol; col++)
+		{
+			patchPositions->push_back(startPos + glm::vec3((row * patchSize), 0.0f, (col * patchSize)));
+		}
+	}
+
+	return patchPositions;
 }
 
 void OpenGLWindow::wheelEvent(QWheelEvent *event)
