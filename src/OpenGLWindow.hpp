@@ -8,6 +8,7 @@
 #include <QOpenGLFunctions_4_5_Core>
 #include <QDebug>
 #include <QImage>
+#include <QOpenGLTexture>
 
 #include <geGL/geGL.h>
 #include <geGL/Texture.h>
@@ -23,7 +24,7 @@
 
 #include "SettingsWidget.hpp"
 #include "Camera.hpp"
-#include <QOpenGLTexture>
+#include "GrassField.hpp"
 
 class OpenGLWindow : public QOpenGLWidget, protected QOpenGLFunctions_4_5_Core
 {

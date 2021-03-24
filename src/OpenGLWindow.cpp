@@ -51,8 +51,11 @@ void OpenGLWindow::initializeGL()
 	terrainShaderProgram = std::make_shared<ge::gl::Program>(terrainVS, terrainFS);
 	dummyShaderProgram	 = std::make_shared<ge::gl::Program>(dummyVS, dummyFS);
 
+	/* Create grass field */
+	GrassField *grassField = new GrassField(200, 25);
+
 	/* Generating patches */
-	std::vector<glm::vec3> *patchPositions = generatePatchPositions(glm::vec3(0.f, 0.f, 0.f), 200, 25);
+	std::vector<glm::vec3> *patchPositions = grassField->getPatchPositions();
 	std::cout << "Number of patches: " << patchPositions->size() << std::endl;
 
 	// Generating vertices
@@ -79,10 +82,18 @@ void OpenGLWindow::initializeGL()
 
 	glm::vec4 pc { 0.0f, 0.0f, 0.0f, 1.0f };
 
-	glm::vec4 p1 = pc + glm::vec4(-0.5f * w, 0.0f, 0.0f, 1.0f);
-	glm::vec4 p2 = pc + glm::vec4( 0.5f * w, 0.0f, 0.0f, 1.0f);
-	glm::vec4 p3 = pc + glm::vec4( 0.5f * w,	h, 0.0f, 1.0f);
-	glm::vec4 p4 = pc + glm::vec4(-0.5f * w,	h, 0.0f, 1.0f);
+	glm::vec4 p1 = pc + glm::vec4(-0.5f * w, 0.0f, 0.0f, 0.0f);
+	glm::vec4 p2 = pc + glm::vec4( 0.5f * w, 0.0f, 0.0f, 0.0f);
+	glm::vec4 p3 = pc + glm::vec4( 0.5f * w,	h, 0.0f, 0.0f);
+	glm::vec4 p4 = pc + glm::vec4(-0.5f * w,	h, 0.0f, 0.0f);
+
+	/* Model transformations */
+	glm::mat4 model = glm::translate(glm::mat4(1.0f), patchPositions->front());
+	p1 = model * p1;
+	p2 = model * p2;
+	p3 = model * p3;
+	p4 = model * p4;
+	pc = model * pc;
 
 	std::vector<float> grassBladePos
 	{
@@ -94,10 +105,10 @@ void OpenGLWindow::initializeGL()
 	};
 	std::vector<float> grassCenterPos
 	{
-		0.0f, 0.0f, 0.0f, r1,
-		0.0f, 0.0f, 0.0f, r1,
-		0.0f, 1.0f, 0.0f, r1,
-		0.0f, 1.0f, 0.0f, r1
+		pc.x, 0.0f, pc.z, r1,
+		pc.x, 0.0f, pc.z, r1,
+		pc.x, 1.0f, pc.z, r1,
+		pc.x, 1.0f, pc.z, r1
 		// x, lower/upper, z, r1
 	};
 	std::vector<float> grassTexCoord
@@ -220,6 +231,7 @@ void OpenGLWindow::initializeGL()
 		0.0f, 1.0f
 	};
 
+
 	grassPositionBuffer		  = std::make_shared<ge::gl::Buffer>(grassBladePos.size() * sizeof(float), grassBladePos.data());
 	grassCenterPositionBuffer = std::make_shared<ge::gl::Buffer>(grassCenterPos.size() * sizeof(float), grassCenterPos.data());
 	grassTexCoordBuffer		  = std::make_shared<ge::gl::Buffer>(grassTexCoord.size() * sizeof(float), grassTexCoord.data());
@@ -304,13 +316,13 @@ void OpenGLWindow::paintGL()
 	gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
 	/* DRAW DUMMY */
-	/*dummyShaderProgram->use();
+	dummyShaderProgram->use();
 	dummyVAO->bind();
 	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	debugTexture->bind();
-	gl->glDrawArrays(GL_TRIANGLES, 0, 36);*/
+	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	/* DRAW GRASS */
 	grassShaderProgram->use();
@@ -335,26 +347,6 @@ void OpenGLWindow::printError() const
 	{
 		std::cout << err << std::endl;
 	}
-}
-
-std::vector<glm::vec3> *OpenGLWindow::generatePatchPositions(glm::vec3 worldCenterPos, float fieldSize, float patchSize)
-{
-	std::vector<glm::vec3> *patchPositions = new std::vector<glm::vec3>();
-
-	/* Calculate first patch's position in lower left corner of a field */
-	glm::vec3 startPos = worldCenterPos - glm::vec3(fieldSize / 2, 0.0f , fieldSize / 2);
-	startPos = startPos + glm::vec3(patchSize / 2, 0.0f, patchSize / 2);	// we want the center of the patch
-
-	int patchesInRowOrCol = fieldSize / patchSize;
-	for (size_t row = 0; row < patchesInRowOrCol; row++)
-	{
-		for (size_t col = 0; col < patchesInRowOrCol; col++)
-		{
-			patchPositions->push_back(startPos + glm::vec3((row * patchSize), 0.0f, (col * patchSize)));
-		}
-	}
-
-	return patchPositions;
 }
 
 void OpenGLWindow::wheelEvent(QWheelEvent *event)
