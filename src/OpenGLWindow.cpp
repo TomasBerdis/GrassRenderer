@@ -339,10 +339,17 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 		camera->moveCamera(Camera::Direction::LEFT, cameraSpeed);
 	if (event->key() == Qt::Key_D)
 		camera->moveCamera(Camera::Direction::RIGHT, cameraSpeed);
-	if (event->key() == Qt::Key_Shift)
+	if (event->key() == Qt::Key_Space)
 		camera->moveCamera(Camera::Direction::UP, cameraSpeed);
 	if (event->key() == Qt::Key_Control)
 		camera->moveCamera(Camera::Direction::DOWN, cameraSpeed);
+	if (event->key() == Qt::Key_Escape)
+	{
+		if (settingsWidget->isVisible())
+			settingsWidget->hide();
+		else
+			settingsWidget->show();
+	}
 
 	update();
 }
