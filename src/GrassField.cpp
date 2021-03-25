@@ -1,10 +1,9 @@
 #include "GrassField.hpp"
 
-GrassField::GrassField(float fieldSize, float patchSize)
-    : fieldSize{ fieldSize }, patchSize{ patchSize }
+GrassField::GrassField(float fieldSize, float patchSize, int grassBladeCount)
+	: fieldSize{ fieldSize }, patchSize{ patchSize }, grassBladeCount{ grassBladeCount }
 {
 	worldCenterPos = { 0.0f, 0.0f, 0.0f };
-	grassBladeCount = 1;
 	generatePatchPositions();
 	generateGrassGeometry();
 }
@@ -95,8 +94,6 @@ void GrassField::generatePatchPositions()
 
 void GrassField::generateRandoms()
 {
-	srand(time(0));	// reset generator seed
-
 	/* Rendering pipeline random values */
 	randoms[0] = glm::linearRand(0.00f, 360.0f);	// angle
 	randoms[1] = glm::linearRand(0.00f, 1.00f);		// x offset
@@ -119,6 +116,7 @@ void GrassField::generateGrassGeometry()
 	grassCenterPositions = new std::vector<glm::vec4>();
 	grassTextureCoords   = new std::vector<glm::vec4>();
 	grassRandoms		 = new std::vector<glm::vec4>();
+	srand(time(0));	// reset generator seed
 
 	for (size_t i = 0; i < grassBladeCount; i++)
 	{

@@ -15,7 +15,7 @@
 class GrassField
 {
 public:
-    GrassField(float fieldSize, float patchSize);
+    GrassField(float fieldSize, float patchSize, int grassBladeCount);
     ~GrassField();
 
     std::vector<glm::vec3> *getPatchPositions();
@@ -37,8 +37,8 @@ protected:
 private:
     float fieldSize;
     float patchSize;
-    float grassBladeCount;
     float randoms[11];
+    int grassBladeCount;
     glm::vec3 worldCenterPos;
 
     std::vector<glm::vec3> *patchPositions;

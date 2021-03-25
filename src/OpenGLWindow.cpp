@@ -8,7 +8,8 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -100.0f);	// reset rotation
 
 	/* Create grass field */
-	grassField = new GrassField(200, 25);
+	grassBladeCount = 100;
+	grassField = new GrassField(200, 25, grassBladeCount);
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -64,7 +65,8 @@ void OpenGLWindow::initializeGL()
 	// Generating vertices
 	std::vector<int> grassBladeInd
 	{
-		0, 1, 2, 3
+		0, 1, 2, 3,
+		4, 5, 6, 7
 	};
 	std::vector<float> terrainPos
 	{
@@ -171,14 +173,12 @@ void OpenGLWindow::initializeGL()
 	grassCenterPositionBuffer = grassField->getGrassCenterBuffer();
 	grassTexCoordBuffer		  = grassField->getGrassTexCoordBuffer();
 	grassRandomsBuffer		  = grassField->getGrassRandomsBuffer();
-	grassElementBuffer		  = std::make_shared<ge::gl::Buffer>(grassBladeInd.size() * sizeof(int), grassBladeInd.data());
 
 	grassVAO = std::make_shared<ge::gl::VertexArray>();
-	grassVAO->addElementBuffer(grassElementBuffer);
-	grassVAO->addAttrib(grassPositionBuffer, 0, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassPositionBuffer,	   0, 4, GL_FLOAT);
 	grassVAO->addAttrib(grassCenterPositionBuffer, 1, 4, GL_FLOAT);
-	grassVAO->addAttrib(grassTexCoordBuffer, 2, 4, GL_FLOAT);
-	grassVAO->addAttrib(grassRandomsBuffer, 3, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassTexCoordBuffer,	   2, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassRandomsBuffer,		   3, 4, GL_FLOAT);
 
 	terrainPositionBuffer = std::make_shared<ge::gl::Buffer>(terrainPos.size() * sizeof(float), terrainPos.data());
 	terrainElementBuffer  = std::make_shared<ge::gl::Buffer>(terrainInd.size() * sizeof(int), terrainInd.data());
@@ -265,7 +265,7 @@ void OpenGLWindow::paintGL()
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 	grassAlphaTexture->bind();
-	gl->glDrawElements(GL_PATCHES, 4, GL_UNSIGNED_INT, nullptr);
+	gl->glDrawArrays(GL_PATCHES, 0, grassBladeCount * 4);
 
 	/* RENDER CALL END */
 	printError();
