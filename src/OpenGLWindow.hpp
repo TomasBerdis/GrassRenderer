@@ -38,6 +38,7 @@ public:
 public slots:
 	void setTessLevel(int tessLevel);
 	void setRasterizationMode(GLenum mode);
+	void tick();
 
 protected:
 	void initializeGL() override;

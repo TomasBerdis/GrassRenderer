@@ -8,11 +8,13 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -100.0f);	// reset rotation
 
 	/* Create grass field */
-	grassField = new GrassField(200, 25, 100);
+	grassField = new GrassField(200, 25, 1000);
 }
 
 OpenGLWindow::~OpenGLWindow()
 {
+	delete camera;
+	delete grassField;
 }
 
 void OpenGLWindow::initializeGL()
@@ -71,12 +73,6 @@ void OpenGLWindow::initializeGL()
 	patchTransSSBO = std::make_shared<ge::gl::Buffer>(patchTranslations.size() * sizeof(glm::mat4), patchTranslations.data());
 	grassShaderProgram->bindBuffer("patchTranslationBuffer", patchTransSSBO);
 
-	// Generating vertices
-	std::vector<int> grassBladeInd
-	{
-		0, 1, 2, 3,
-		4, 5, 6, 7
-	};
 	std::vector<float> terrainPos
 	{
 		-100.0, 0.0, 100.0, 1.0,
@@ -206,6 +202,10 @@ void OpenGLWindow::initializeGL()
 	// Elapsed time since initialization
 	timer.start();
 
+	tickTimer = new QTimer(this);
+	QObject::connect(tickTimer, SIGNAL(timeout()), this, SLOT(tick()));
+	tickTimer->start();
+
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -230,6 +230,11 @@ void OpenGLWindow::setRasterizationMode(GLenum mode)
 	update();
 }
 
+void OpenGLWindow::tick()
+{
+	update();
+}
+
 void OpenGLWindow::resizeGL(int w, int h)
 {
 	windowWidth = w;
@@ -246,6 +251,7 @@ void OpenGLWindow::paintGL()
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glm::mat4 mvp = camera->getProjectionMatrix() * camera->getViewMatrix();
+	float time = timer.elapsed() / 100;
 
 	/* DRAW TERRAIN */
 	terrainShaderProgram->use();
@@ -270,6 +276,9 @@ void OpenGLWindow::paintGL()
 	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 	grassShaderProgram->set1i("uTessLevel", tessLevel);
 	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
+	GLint uTime = glGetUniformLocation(grassShaderProgram->getId(), "uTime");
+	gl->glUniform1f(uTime, time);
+	//grassShaderProgram->set1f("uTime", time);
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);

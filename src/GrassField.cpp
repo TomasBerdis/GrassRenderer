@@ -134,8 +134,8 @@ void GrassField::generateGrassGeometry()
 		generateRandoms();
 
 		/* Patch values */
-		float wMin = 0.5f;
-		float wMax = 2.0f;
+		float wMin = 0.2f;
+		float wMax = 1.0f;
 		float hMin = 2.0f;
 		float hMax = 5.0f;
 		float density = 1.0f;

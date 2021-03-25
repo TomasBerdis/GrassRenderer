@@ -13,6 +13,7 @@ out vec4 vTexCoord;
 out vec4 vRandoms;
 
 uniform float uMaxBendingFactor;
+uniform float uTime;
 
 layout(std430, binding=0) buffer patchTranslationBuffer
 {
@@ -33,6 +34,8 @@ void main()
       float r2 = texCoord.z;
       newX = newX + (uMaxBendingFactor * (2 * r1 - 1));
       newZ = newZ + (uMaxBendingFactor * (2 * r2 - 1));
+      newX = newX + sin(uTime/3) + cos(uTime/4);
+      newZ = newZ + sin(uTime/3);
    }
 
    gl_Position     = vec4(newX, position.y, newZ, 1.0f);
