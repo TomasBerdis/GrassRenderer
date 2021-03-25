@@ -46,8 +46,6 @@ protected:
 
 	void printError() const;
 
-	std::vector<glm::vec3>* generatePatchPositions(glm::vec3 worldCenterPos, float fieldSize, float patchSize);
-
 	/* Event handlers */
 	void wheelEvent(QWheelEvent* event);
 	void mousePressEvent(QMouseEvent* event);
@@ -62,6 +60,7 @@ private:
 	int windowHeight;
 
 	Camera *camera;
+	GrassField *grassField;
 
 	QTimer *tickTimer;
 	QElapsedTimer timer;

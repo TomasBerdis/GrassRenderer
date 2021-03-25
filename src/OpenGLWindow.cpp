@@ -3,6 +3,12 @@
 OpenGLWindow::OpenGLWindow()
 	: QOpenGLWidget()
 {
+	/* Create camera */
+	camera = new Camera(glm::vec3(0.0f, 2.0f, 4.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
+	camera->rotateCamera(900.0f, -100.0f);	// reset rotation
+
+	/* Create grass field */
+	grassField = new GrassField(200, 25);
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -51,81 +57,11 @@ void OpenGLWindow::initializeGL()
 	terrainShaderProgram = std::make_shared<ge::gl::Program>(terrainVS, terrainFS);
 	dummyShaderProgram	 = std::make_shared<ge::gl::Program>(dummyVS, dummyFS);
 
-	/* Create grass field */
-	GrassField *grassField = new GrassField(200, 25);
-
 	/* Generating patches */
 	std::vector<glm::vec3> *patchPositions = grassField->getPatchPositions();
 	std::cout << "Number of patches: " << patchPositions->size() << std::endl;
 
 	// Generating vertices
-	srand(time(0));	// reset generator seed
-	float r = glm::linearRand(0.0f, 1.0f);
-
-	/* Rendering pipeline random values */
-	float r0 = glm::linearRand( 0.00f, 360.0f);	// angle
-	float r1 = glm::linearRand( 0.00f, 1.00f);	// x offset
-	float r2 = glm::linearRand( 0.00f, 1.00f);	// z offset
-	float r3 = glm::linearRand(-0.25f, 0.25f);	// TCS
-	float r4 = glm::linearRand( 0.75f, 1.25f);	// TCS
-	float r5 = glm::linearRand( 0.00f, 1.00f);	// R
-	float r6 = glm::linearRand( 0.00f, 1.00f);	// G
-	float r7 = glm::linearRand( 0.00f, 1.00f);	// B
-
-	float wMin = 0.5f;
-	float wMax = 2.0f;
-	float hMin = 2.0f;
-	float hMax = 5.0f;
-	float density = 1.0f;
-	float w = wMin + r * (wMax - wMin);
-	float h = (hMin + r * (hMax - hMin)) * density;
-
-	glm::vec4 pc { 0.0f, 0.0f, 0.0f, 1.0f };
-
-	glm::vec4 p1 = pc + glm::vec4(-0.5f * w, 0.0f, 0.0f, 0.0f);
-	glm::vec4 p2 = pc + glm::vec4( 0.5f * w, 0.0f, 0.0f, 0.0f);
-	glm::vec4 p3 = pc + glm::vec4( 0.5f * w,	h, 0.0f, 0.0f);
-	glm::vec4 p4 = pc + glm::vec4(-0.5f * w,	h, 0.0f, 0.0f);
-
-	/* Model transformations */
-	glm::mat4 model = glm::translate(glm::mat4(1.0f), patchPositions->front());
-	p1 = model * p1;
-	p2 = model * p2;
-	p3 = model * p3;
-	p4 = model * p4;
-	pc = model * pc;
-
-	std::vector<float> grassBladePos
-	{
-		p1.x, p1.y, p1.z, r0,
-		p2.x, p2.y, p2.z, r0,
-		p3.x, p3.y, p3.z, r0,
-		p4.x, p4.y, p4.z, r0
-		// x, y, z, r0
-	};
-	std::vector<float> grassCenterPos
-	{
-		pc.x, 0.0f, pc.z, r1,
-		pc.x, 0.0f, pc.z, r1,
-		pc.x, 1.0f, pc.z, r1,
-		pc.x, 1.0f, pc.z, r1
-		// x, lower/upper, z, r1
-	};
-	std::vector<float> grassTexCoord
-	{
-		0.0f, 0.0f, r2, r3,
-		1.0f, 0.0f, r2, r3,
-		1.0f, 1.0f, r2, r3,
-		0.0f, 1.0f, r2, r3
-		// s, t, r2, r3
-	};
-	std::vector<float> grassRandoms
-	{
-		r4, r5, r6, r7,
-		r4, r5, r6, r7,
-		r4, r5, r6, r7,
-		r4, r5, r6, r7
-	};
 	std::vector<int> grassBladeInd
 	{
 		0, 1, 2, 3
@@ -231,11 +167,10 @@ void OpenGLWindow::initializeGL()
 		0.0f, 1.0f
 	};
 
-
-	grassPositionBuffer		  = std::make_shared<ge::gl::Buffer>(grassBladePos.size() * sizeof(float), grassBladePos.data());
-	grassCenterPositionBuffer = std::make_shared<ge::gl::Buffer>(grassCenterPos.size() * sizeof(float), grassCenterPos.data());
-	grassTexCoordBuffer		  = std::make_shared<ge::gl::Buffer>(grassTexCoord.size() * sizeof(float), grassTexCoord.data());
-	grassRandomsBuffer		  = std::make_shared<ge::gl::Buffer>(grassRandoms.size() * sizeof(float), grassRandoms.data());
+	grassPositionBuffer		  = grassField->getGrassVertexBuffer();
+	grassCenterPositionBuffer = grassField->getGrassCenterBuffer();
+	grassTexCoordBuffer		  = grassField->getGrassTexCoordBuffer();
+	grassRandomsBuffer		  = grassField->getGrassRandomsBuffer();
 	grassElementBuffer		  = std::make_shared<ge::gl::Buffer>(grassBladeInd.size() * sizeof(int), grassBladeInd.data());
 
 	grassVAO = std::make_shared<ge::gl::VertexArray>();
@@ -258,10 +193,6 @@ void OpenGLWindow::initializeGL()
 	dummyVAO = std::make_shared<ge::gl::VertexArray>();
 	dummyVAO->addAttrib(dummyPositionBuffer, 0, 4, GL_FLOAT);
 	dummyVAO->addAttrib(dummyTexCoordBuffer, 1, 2, GL_FLOAT);
-
-	/* Camera */
-	camera = new Camera(glm::vec3(0.0f, 2.0f, 4.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
-	camera->rotateCamera(900.0f, -100.0f);	// reset rotation
 
 	// Elapsed time since initialization
 	timer.start();
