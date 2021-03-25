@@ -14,6 +14,11 @@ out vec4 vRandoms;
 
 uniform float uMaxBendingFactor;
 
+layout(std430, binding=0) buffer patchTranslationBuffer
+{
+    mat4 patchTranslations[];
+};
+
 void main()
 {
    float r0 = 2 * M_PI * position.w;   // angle
@@ -32,7 +37,7 @@ void main()
 
    gl_Position     = vec4(newX, position.y, newZ, 1.0f);
 
-   vPosition       = gl_Position;
+   vPosition       = patchTranslations[gl_InstanceID] * gl_Position;
    vCenterPosition = centerPosition;
    vTexCoord       = texCoord;
    vRandoms        = randoms;

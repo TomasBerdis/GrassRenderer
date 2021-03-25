@@ -4,6 +4,7 @@ GrassField::GrassField(float fieldSize, float patchSize, int grassBladeCount)
 	: fieldSize{ fieldSize }, patchSize{ patchSize }, grassBladeCount{ grassBladeCount }
 {
 	worldCenterPos = { 0.0f, 0.0f, 0.0f };
+	patchCount = pow(fieldSize / patchSize, 2);
 	generatePatchPositions();
 	generateGrassGeometry();
 }
@@ -15,6 +16,16 @@ GrassField::~GrassField()
 	delete grassCenterPositions;
 	delete grassTextureCoords;
 	delete grassRandoms;
+}
+
+int GrassField::getGrassBladeCount()
+{
+	return grassBladeCount;
+}
+
+int GrassField::getPatchCount()
+{
+	return patchCount;
 }
 
 std::vector<glm::vec3> *GrassField::getPatchPositions()

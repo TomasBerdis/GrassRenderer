@@ -8,8 +8,7 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -100.0f);	// reset rotation
 
 	/* Create grass field */
-	grassBladeCount = 100;
-	grassField = new GrassField(200, 25, grassBladeCount);
+	grassField = new GrassField(200, 25, 100);
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -61,6 +60,16 @@ void OpenGLWindow::initializeGL()
 	/* Generating patches */
 	std::vector<glm::vec3> *patchPositions = grassField->getPatchPositions();
 	std::cout << "Number of patches: " << patchPositions->size() << std::endl;
+	std::vector<glm::mat4> patchTranslations;
+
+	for (size_t i = 0; i < patchPositions->size(); i++)
+	{
+		glm::mat4 mat = glm::translate(glm::mat4(1.0f), patchPositions->at(i));
+		patchTranslations.push_back(mat);
+	}
+
+	patchTransSSBO = std::make_shared<ge::gl::Buffer>(patchTranslations.size() * sizeof(glm::mat4), patchTranslations.data());
+	grassShaderProgram->bindBuffer("patchTranslationBuffer", patchTransSSBO);
 
 	// Generating vertices
 	std::vector<int> grassBladeInd
@@ -265,7 +274,7 @@ void OpenGLWindow::paintGL()
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 	grassAlphaTexture->bind();
-	gl->glDrawArrays(GL_PATCHES, 0, grassBladeCount * 4);
+	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, 64);
 
 	/* RENDER CALL END */
 	printError();

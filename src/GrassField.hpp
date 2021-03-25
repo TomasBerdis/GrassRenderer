@@ -18,6 +18,9 @@ public:
     GrassField(float fieldSize, float patchSize, int grassBladeCount);
     ~GrassField();
 
+    int getGrassBladeCount();
+    int getPatchCount();
+
     std::vector<glm::vec3> *getPatchPositions();
     std::vector<glm::vec4> *getGrassVertexPositions();
     std::vector<glm::vec4> *getGrassCenterPositions();
@@ -39,6 +42,7 @@ private:
     float patchSize;
     float randoms[11];
     int grassBladeCount;
+    int patchCount;
     glm::vec3 worldCenterPos;
 
     std::vector<glm::vec3> *patchPositions;

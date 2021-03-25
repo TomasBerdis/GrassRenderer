@@ -58,7 +58,6 @@ private:
 	float maxBendingFactor = 0.5;
 	int windowWidth;
 	int windowHeight;
-	int grassBladeCount;
 
 	Camera *camera;
 	GrassField *grassField;
@@ -76,6 +75,7 @@ private:
 	std::shared_ptr<ge::gl::Buffer> terrainElementBuffer;
 	std::shared_ptr<ge::gl::Buffer> dummyPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> dummyTexCoordBuffer;
+	std::shared_ptr<ge::gl::Buffer> patchTransSSBO;
 
 	std::shared_ptr<ge::gl::Context>	 gl;
 
