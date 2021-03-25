@@ -111,9 +111,9 @@ void GrassField::generateRandoms()
 	randoms[2] = glm::linearRand(0.00f, 1.00f);		// z offset
 	randoms[3] = glm::linearRand(-0.25f, 0.25f);	// TCS
 	randoms[4] = glm::linearRand(0.75f, 1.25f);		// TCS
-	randoms[5] = glm::linearRand(0.00f, 1.00f);		// R
-	randoms[6] = glm::linearRand(0.00f, 1.00f);		// G
-	randoms[7] = glm::linearRand(0.00f, 1.00f);		// B
+	randoms[5] = glm::linearRand(0.00f, 0.05f);		// R
+	randoms[6] = glm::linearRand(0.00f, 0.05f);		// G
+	randoms[7] = glm::linearRand(0.00f, 0.05f);		// B
 
 	/* Values for blade generation */
 	randoms[8]  = glm::linearRand(0.0f, 1.0f);						// w, h
@@ -134,8 +134,8 @@ void GrassField::generateGrassGeometry()
 		generateRandoms();
 
 		/* Patch values */
-		float wMin = 0.2f;
-		float wMax = 1.0f;
+		float wMin = 0.1f;
+		float wMax = 0.5f;
 		float hMin = 2.0f;
 		float hMax = 5.0f;
 		float density = 1.0f;

@@ -34,8 +34,20 @@ void main()
       float r2 = texCoord.z;
       newX = newX + (uMaxBendingFactor * (2 * r1 - 1));
       newZ = newZ + (uMaxBendingFactor * (2 * r2 - 1));
-      newX = newX + sin(uTime/3) + cos(uTime/4);
-      newZ = newZ + sin(uTime/3);
+   }
+
+   /* Calculate world space position */
+   float patchX = patchTranslations[gl_InstanceID][3][0];
+   float patchY = patchTranslations[gl_InstanceID][3][1];
+   float patchZ = patchTranslations[gl_InstanceID][3][2];
+   vec3 worldPos = vec3(patchX + newX, patchY + position.y, patchZ + newZ);
+
+   if (centerPosition.y > 0.99f) // upper vertices
+   {
+      // newX = newX + sin(uTime/3 + worldPos.x + worldPos.z) + cos(uTime/4 + worldPos.x + worldPos.z) + cos(uTime/9 + worldPos.x + worldPos.z);
+      // newZ = newZ + sin(uTime/6 + worldPos.x + worldPos.z);
+      newX = newX + (2 * sin (1 * (worldPos.x + worldPos.y + worldPos.z + uTime/150))) + 1;
+      newZ = newZ + (1 * sin (2 * (worldPos.x + worldPos.y + worldPos.z + uTime/150))) + 0.5;
    }
 
    gl_Position     = vec4(newX, position.y, newZ, 1.0f);
