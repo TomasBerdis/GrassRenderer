@@ -18,6 +18,11 @@ GrassField::~GrassField()
 	delete grassRandoms;
 }
 
+int GrassField::getFieldSize()
+{
+	return fieldSize;
+}
+
 int GrassField::getGrassBladeCount()
 {
 	return grassBladeCount;

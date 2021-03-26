@@ -1,6 +1,6 @@
 #version 450 core
 
-uniform sampler2D alphaTexture;
+uniform sampler2D uAlphaTexture;
 
 in vec4 teTexCoord;
 in vec4 teRandoms;
@@ -8,7 +8,7 @@ out vec4 color;
 
 void main()
 {
-    vec4 texColor = texture(alphaTexture, teTexCoord.xy);
+    vec4 texColor = texture(uAlphaTexture, teTexCoord.st);
     if(texColor.a < 0.1)
         discard;
     else

@@ -8,13 +8,15 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -100.0f);	// reset rotation
 
 	/* Create grass field */
-	grassField = new GrassField(200, 25, 1000);
+	grassField = new GrassField(200, 10, 100);
 }
 
 OpenGLWindow::~OpenGLWindow()
 {
+	makeCurrent();
 	delete camera;
 	delete grassField;
+	doneCurrent();
 }
 
 void OpenGLWindow::initializeGL()
@@ -24,6 +26,8 @@ void OpenGLWindow::initializeGL()
 	/* Initialize GPUEngine */
 	ge::gl::init();
 	gl = std::make_shared<ge::gl::Context>();
+
+	/* OpenGL states */
 	gl->glEnable(GL_DEPTH_TEST);
 	gl->glEnable(GL_BLEND);
 	gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -213,6 +217,7 @@ void OpenGLWindow::initializeGL()
 
 	debugTexture = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
 	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA));
+	heightMap = new QOpenGLTexture(QImage(HEIGHT_MAP));
 }
 
 void OpenGLWindow::setTessLevel(int tessLevel)
@@ -267,6 +272,7 @@ void OpenGLWindow::paintGL()
 	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
+	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
 	debugTexture->bind();
 	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -278,12 +284,24 @@ void OpenGLWindow::paintGL()
 	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
 	GLint uTime = glGetUniformLocation(grassShaderProgram->getId(), "uTime");
 	gl->glUniform1f(uTime, time);
-	//grassShaderProgram->set1f("uTime", time);
+	GLint uFieldSize = glGetUniformLocation(grassShaderProgram->getId(), "uFieldSize");
+	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
+	GLint uWindEnabled = glGetUniformLocation(grassShaderProgram->getId(), "uWindEnabled");
+	gl->glUniform1i(uWindEnabled, windEnabled);
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
 	grassAlphaTexture->bind();
-	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, 64);
+	gl->glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
+	heightMap->bind();
+	GLint uAlphaTexture = glGetUniformLocation(grassShaderProgram->getId(), "uAlphaTexture");
+	gl->glUniform1i(uAlphaTexture, 0);
+	GLint uHeightMap = glGetUniformLocation(grassShaderProgram->getId(), "uHeightMap");
+	gl->glUniform1i(uHeightMap, 1);
+
+	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, grassField->getPatchCount());
 
 	/* RENDER CALL END */
 	printError();
@@ -349,6 +367,13 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 			settingsWidget->hide();
 		else
 			settingsWidget->show();
+	}
+	if (event->key() == Qt::Key_V)
+	{
+		if (windEnabled == 1)
+			windEnabled = 0;
+		else
+			windEnabled = 1;
 	}
 
 	update();

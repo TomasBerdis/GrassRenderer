@@ -18,6 +18,7 @@ public:
     GrassField(float fieldSize, float patchSize, int grassBladeCount);
     ~GrassField();
 
+    int getFieldSize();
     int getGrassBladeCount();
     int getPatchCount();
 

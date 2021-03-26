@@ -60,6 +60,8 @@ private:
 	int windowWidth;
 	int windowHeight;
 
+	int windEnabled = 1;
+
 	Camera *camera;
 	GrassField *grassField;
 
@@ -95,4 +97,5 @@ private:
 
 	QOpenGLTexture *debugTexture;
 	QOpenGLTexture *grassAlphaTexture;
+	QOpenGLTexture *heightMap;
 };
