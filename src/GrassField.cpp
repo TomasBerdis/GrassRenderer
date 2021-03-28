@@ -3,6 +3,8 @@
 GrassField::GrassField(float fieldSize, float patchSize, int grassBladeCount)
 	: fieldSize{ fieldSize }, patchSize{ patchSize }, grassBladeCount{ grassBladeCount }
 {
+	terrain = std::make_shared<Terrain>(fieldSize, fieldSize, 100, 100);
+
 	worldCenterPos = { 0.0f, 0.0f, 0.0f };
 	patchCount = pow(fieldSize / patchSize, 2);
 	generatePatchPositions();
@@ -31,6 +33,11 @@ int GrassField::getGrassBladeCount()
 int GrassField::getPatchCount()
 {
 	return patchCount;
+}
+
+std::shared_ptr<Terrain> GrassField::getTerrain()
+{
+	return terrain;
 }
 
 std::vector<glm::vec3> *GrassField::getPatchPositions()

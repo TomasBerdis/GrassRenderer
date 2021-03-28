@@ -12,6 +12,7 @@ public:
 
 	glm::mat4 getViewMatrix();
 	glm::mat4 getProjectionMatrix();
+	glm::vec3 getPosition();
 	void increaseFov(float fovDelta);
 	void decreaseFov(float fovDelta);
 	void rotateCamera(float horizontalDelta, float verticalDelta);

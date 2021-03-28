@@ -33,13 +33,12 @@ void main()
    vec3 centerWorldPos = vec3(patchX + centerPosition.x, patchY + centerPosition.y, patchZ + centerPosition.z);
 
    /* Calculate height map coordinates */
-   vec2 mapCoords = vec2(centerWorldPos.x / uFieldSize, centerWorldPos.z / uFieldSize);
+   float x = (centerWorldPos.x + uFieldSize/2) / uFieldSize;         // normalize x (possitive x is pointing away from us)
+   float z = 1 - ((centerWorldPos.z + uFieldSize/2) / uFieldSize);   // normalize z (possitive z is pointing towards us)
+   vec2 mapCoords = vec2(x, z);
    vec4 heightSample = texture(uHeightMap, mapCoords);
 
    /* Apply random variation influenced by world space position */
-   // float r0 = fract((position.w       * worldPos.x) / worldPos.z);
-   // float r1 = fract((centerPosition.w * worldPos.x) / worldPos.z);
-   // float r2 = fract((texCoord.z       * worldPos.x) / worldPos.z);
    float c = 0.5;
    float r0 = position.w       * sin(c * worldPos.x);
    float r1 = centerPosition.w * sin(c * worldPos.z);

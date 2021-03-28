@@ -20,6 +20,5 @@ void main()
 
         color = vec4(mix(top, bottom, teTexCoord.y));
         color = vec4(color.r + teRandoms.y, color.g + teRandoms.z, color.b + teRandoms.w, color.a);
-        // color = vec4(mix(top, bottom, position.y)) * teTexCoord.y;
     }
 }

@@ -11,6 +11,8 @@
 
 #include <geGL/geGL.h>
 
+#include "Terrain.hpp"
+
 
 class GrassField
 {
@@ -21,6 +23,8 @@ public:
     int getFieldSize();
     int getGrassBladeCount();
     int getPatchCount();
+
+    std::shared_ptr<Terrain> getTerrain();
 
     std::vector<glm::vec3> *getPatchPositions();
     std::vector<glm::vec4> *getGrassVertexPositions();
@@ -45,6 +49,8 @@ private:
     int grassBladeCount;
     int patchCount;
     glm::vec3 worldCenterPos;
+
+    std::shared_ptr<Terrain> terrain;
 
     std::vector<glm::vec3> *patchPositions;
     std::vector<glm::vec4> *grassVertexPositions;

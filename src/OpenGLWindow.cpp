@@ -4,8 +4,8 @@ OpenGLWindow::OpenGLWindow()
 	: QOpenGLWidget()
 {
 	/* Create camera */
-	camera = new Camera(glm::vec3(0.0f, 2.0f, 4.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
-	camera->rotateCamera(900.0f, -100.0f);	// reset rotation
+	camera = new Camera(glm::vec3(0.0f, 100.0f, 160.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
+	camera->rotateCamera(900.0f, -250.0f);	// reset rotation
 
 	/* Create grass field */
 	grassField = new GrassField(200, 10, 100);
@@ -77,18 +77,6 @@ void OpenGLWindow::initializeGL()
 	patchTransSSBO = std::make_shared<ge::gl::Buffer>(patchTranslations.size() * sizeof(glm::mat4), patchTranslations.data());
 	grassShaderProgram->bindBuffer("patchTranslationBuffer", patchTransSSBO);
 
-	std::vector<float> terrainPos
-	{
-		-100.0, 0.0, 100.0, 1.0,
-		 100.0, 0.0, 100.0, 1.0,
-		 100.0, 0.0,-100.0, 1.0,
-		-100.0, 0.0,-100.0, 1.0
-	};
-	std::vector<int> terrainInd
-	{
-		0, 1, 2,
-		2, 3, 0
-	};
 	std::vector<float> dummyPos
 	{
 		-0.5f, -0.5f, -0.5f,  1.0f,
@@ -189,14 +177,16 @@ void OpenGLWindow::initializeGL()
 	grassVAO->addAttrib(grassTexCoordBuffer,	   2, 4, GL_FLOAT);
 	grassVAO->addAttrib(grassRandomsBuffer,		   3, 4, GL_FLOAT);
 
-	terrainPositionBuffer = std::make_shared<ge::gl::Buffer>(terrainPos.size() * sizeof(float), terrainPos.data());
-	terrainElementBuffer  = std::make_shared<ge::gl::Buffer>(terrainInd.size() * sizeof(int), terrainInd.data());
+	terrainPositionBuffer = grassField->getTerrain()->getTerrainVertexBuffer();
+	terrainIndexBuffer    = grassField->getTerrain()->getTerrainIndexBuffer();
+	terrainTexCoordBuffer = grassField->getTerrain()->getTerrainTexCoordBuffer();
 
 	terrainVAO = std::make_shared<ge::gl::VertexArray>();
-	terrainVAO->addElementBuffer(terrainElementBuffer);
-	terrainVAO->addAttrib(terrainPositionBuffer, 0, 4, GL_FLOAT);
+	terrainVAO->addElementBuffer(terrainIndexBuffer);
+	terrainVAO->addAttrib(terrainPositionBuffer, 0, 2, GL_FLOAT);
+	terrainVAO->addAttrib(terrainTexCoordBuffer, 1, 2, GL_FLOAT);
 
-	dummyPositionBuffer = std::make_shared<ge::gl::Buffer>(dummyPos.size() * sizeof(float), dummyPos.data());
+	dummyPositionBuffer = std::make_shared<ge::gl::Buffer>(dummyPos.size()      * sizeof(float), dummyPos.data());
 	dummyTexCoordBuffer = std::make_shared<ge::gl::Buffer>(dummyTexCoord.size() * sizeof(float), dummyTexCoord.data());
 
 	dummyVAO = std::make_shared<ge::gl::VertexArray>();
@@ -210,14 +200,18 @@ void OpenGLWindow::initializeGL()
 	QObject::connect(tickTimer, SIGNAL(timeout()), this, SLOT(tick()));
 	tickTimer->start();
 
-	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S    , GL_CLAMP_TO_EDGE);
+	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T    , GL_CLAMP_TO_EDGE);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	debugTexture = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
+	debugTexture	  = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
 	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA));
-	heightMap = new QOpenGLTexture(QImage(HEIGHT_MAP));
+	heightMap		  = new QOpenGLTexture(QImage(HEIGHT_MAP).mirrored());
+	heightMap->setWrapMode(QOpenGLTexture::ClampToEdge);
+
+	//debug
+	
 }
 
 void OpenGLWindow::setTessLevel(int tessLevel)
@@ -256,15 +250,24 @@ void OpenGLWindow::paintGL()
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glm::mat4 mvp = camera->getProjectionMatrix() * camera->getViewMatrix();
-	float time = timer.elapsed() / 10;
+	float time    = timer.elapsed() / 10;
+
+	//debug
+	glm::vec3 camPos = camera->getPosition();
+	std::cout << "Camera position: " << camPos.x << ", " << camPos.y << ", " << camPos.z << std::endl;
 
 	/* DRAW TERRAIN */
 	terrainShaderProgram->use();
 	terrainVAO->bind();
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 
-	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
-	gl->glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	gl->glEnable(GL_PRIMITIVE_RESTART);
+	gl->glPrimitiveRestartIndex(grassField->getTerrain()->getRestartIndex());
+	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
+	heightMap->bind();
+	gl->glDrawElements(GL_TRIANGLE_STRIP, grassField->getTerrain()->getIndexCount(), GL_UNSIGNED_INT, 0);
+	gl->glDisable(GL_PRIMITIVE_RESTART);
 
 	/* DRAW DUMMY */
 	dummyShaderProgram->use();

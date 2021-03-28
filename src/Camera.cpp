@@ -26,6 +26,11 @@ glm::mat4 Camera::getProjectionMatrix()
 	return projectionMatrix;
 }
 
+glm::vec3 Camera::getPosition()
+{
+	return cameraPosition;
+}
+
 void Camera::increaseFov(float fovDelta)
 {
 	if ((fov + fovDelta) > maxFov)

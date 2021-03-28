@@ -12,7 +12,8 @@ set(sources
     src/OpenGLWindow.cpp src/OpenGLWindow.hpp
     src/SettingsWidget.cpp src/SettingsWidget.hpp
     src/Camera.cpp src/Camera.hpp
-    src/GrassField.cpp src/GrassField.hpp)
+    src/GrassField.cpp src/GrassField.hpp
+    src/Terrain.cpp src/Terrain.hpp)
 
 find_file(grassVS grassVS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders

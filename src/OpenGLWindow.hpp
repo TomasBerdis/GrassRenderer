@@ -75,7 +75,8 @@ private:
 	std::shared_ptr<ge::gl::Buffer> grassTexCoordBuffer;
 	std::shared_ptr<ge::gl::Buffer> grassRandomsBuffer;
 	std::shared_ptr<ge::gl::Buffer> terrainPositionBuffer;
-	std::shared_ptr<ge::gl::Buffer> terrainElementBuffer;
+	std::shared_ptr<ge::gl::Buffer> terrainIndexBuffer;
+	std::shared_ptr<ge::gl::Buffer> terrainTexCoordBuffer;
 	std::shared_ptr<ge::gl::Buffer> dummyPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> dummyTexCoordBuffer;
 	std::shared_ptr<ge::gl::Buffer> patchTransSSBO;
