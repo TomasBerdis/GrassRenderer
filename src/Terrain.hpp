@@ -18,7 +18,6 @@ public:
 
     std::shared_ptr<ge::gl::Buffer> getTerrainVertexBuffer();
     std::shared_ptr<ge::gl::Buffer> getTerrainIndexBuffer();
-    std::shared_ptr<ge::gl::Buffer> getTerrainTexCoordBuffer();
 
 protected:
     void generateTerrain();
@@ -33,6 +32,5 @@ private:
 
     std::vector<glm::vec2> *terrainVertices;
     std::vector<unsigned int> *terrainIndices;
-    std::vector<glm::vec2> *terrainTexCoords;
 
 };

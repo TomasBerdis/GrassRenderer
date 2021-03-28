@@ -37,32 +37,21 @@ std::shared_ptr<ge::gl::Buffer> Terrain::getTerrainIndexBuffer()
     return terrainIndexBuffer;
 }
 
-std::shared_ptr<ge::gl::Buffer> Terrain::getTerrainTexCoordBuffer()
-{
-    std::shared_ptr<ge::gl::Buffer> terrainTexCoordBuffer;
-    terrainTexCoordBuffer = std::make_shared<ge::gl::Buffer>(terrainTexCoords->size() * sizeof(float), terrainTexCoords->data());
-
-    return terrainTexCoordBuffer;
-}
-
 void Terrain::generateTerrain()
 {
     terrainVertices  = new std::vector<glm::vec2>;
     terrainIndices   = new std::vector<unsigned int>;
-    terrainTexCoords = new std::vector<glm::vec2>;
 
-    /* Generate vertices and texture coordinates */
+    /* Generate vertices */
     for (size_t row = 0; row < rows; row++)
     {
         for (size_t col = 0; col < cols; col++)
         {
             float normalizedHeight = (float)row / (rows - 1);
             float normalizedWidth  = (float)col / (cols - 1);
-            float xOffset = glm::mix( -width / 2, width  / 2, normalizedWidth);
+            float xOffset = glm::mix( -width / 2,   width / 2, normalizedWidth);
             float zOffset = glm::mix( height / 2, -height / 2, normalizedHeight);
             terrainVertices->push_back(glm::vec2(xOffset, zOffset));
-
-            terrainTexCoords->push_back(glm::vec2(normalizedWidth, normalizedHeight));
         }
     }
 

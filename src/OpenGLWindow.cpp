@@ -40,23 +40,23 @@ void OpenGLWindow::initializeGL()
 	QObject::connect(settingsWidget, SIGNAL(rasterizationModeChanged(GLenum)), this, SLOT(setRasterizationMode(GLenum)));
 
 	/* Shaders */
-	std::cout << "Grass vertex shader path: " << GRASS_VS << std::endl;
-	std::cout << "Grass tessellation control shader path: " << GRASS_TCS << std::endl;
-	std::cout << "Grass tessellation evaluation shader path: " << GRASS_TES << std::endl;
-	std::cout << "Grass fragment shader path: " << GRASS_FS << std::endl;
-	std::cout << "Terrain vertex shader path: " << TERRAIN_VS << std::endl;
-	std::cout << "Terrain fragment shader path: " << TERRAIN_FS << std::endl;
-	std::cout << "Dummy vertex shader path: " << DUMMY_VS << std::endl;
-	std::cout << "Dummy fragment shader path: " << DUMMY_FS << std::endl;
+	std::cout << "Grass vertex shader path: "					<< GRASS_VS   << std::endl;
+	std::cout << "Grass tessellation control shader path: "		<< GRASS_TCS  << std::endl;
+	std::cout << "Grass tessellation evaluation shader path: "	<< GRASS_TES  << std::endl;
+	std::cout << "Grass fragment shader path: "					<< GRASS_FS   << std::endl;
+	std::cout << "Terrain vertex shader path: "					<< TERRAIN_VS << std::endl;
+	std::cout << "Terrain fragment shader path: "				<< TERRAIN_FS << std::endl;
+	std::cout << "Dummy vertex shader path: "					<< DUMMY_VS   << std::endl;
+	std::cout << "Dummy fragment shader path: "					<< DUMMY_FS   << std::endl;
 
-	std::shared_ptr<ge::gl::Shader> grassVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(GRASS_VS));
-	std::shared_ptr<ge::gl::Shader> grassTCS	= std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER, ge::util::loadTextFile(GRASS_TCS));
+	std::shared_ptr<ge::gl::Shader> grassVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER		    , ge::util::loadTextFile(GRASS_VS));
+	std::shared_ptr<ge::gl::Shader> grassTCS	= std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER   , ge::util::loadTextFile(GRASS_TCS));
 	std::shared_ptr<ge::gl::Shader> grassTES	= std::make_shared<ge::gl::Shader>(GL_TESS_EVALUATION_SHADER, ge::util::loadTextFile(GRASS_TES));
-	std::shared_ptr<ge::gl::Shader> grassFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(GRASS_FS));
-	std::shared_ptr<ge::gl::Shader> terrainVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(TERRAIN_VS));
-	std::shared_ptr<ge::gl::Shader> terrainFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(TERRAIN_FS));
-	std::shared_ptr<ge::gl::Shader> dummyVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER, ge::util::loadTextFile(DUMMY_VS));
-	std::shared_ptr<ge::gl::Shader> dummyFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER, ge::util::loadTextFile(DUMMY_FS));
+	std::shared_ptr<ge::gl::Shader> grassFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(GRASS_FS));
+	std::shared_ptr<ge::gl::Shader> terrainVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile(TERRAIN_VS));
+	std::shared_ptr<ge::gl::Shader> terrainFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(TERRAIN_FS));
+	std::shared_ptr<ge::gl::Shader> dummyVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile(DUMMY_VS));
+	std::shared_ptr<ge::gl::Shader> dummyFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(DUMMY_FS));
 
 	/* Shader programs */
 	grassShaderProgram	 = std::make_shared<ge::gl::Program>(grassVS, grassTCS, grassTES, grassFS);
@@ -181,12 +181,10 @@ void OpenGLWindow::initializeGL()
 	/* Terrain VAO setup */
 	terrainPositionBuffer = grassField->getTerrain()->getTerrainVertexBuffer();
 	terrainIndexBuffer    = grassField->getTerrain()->getTerrainIndexBuffer();
-	terrainTexCoordBuffer = grassField->getTerrain()->getTerrainTexCoordBuffer();
 
 	terrainVAO = std::make_shared<ge::gl::VertexArray>();
 	terrainVAO->addElementBuffer(terrainIndexBuffer);
 	terrainVAO->addAttrib(terrainPositionBuffer, 0, 2, GL_FLOAT);
-	terrainVAO->addAttrib(terrainTexCoordBuffer, 1, 2, GL_FLOAT);
 
 	/* Dummy VAO setup */
 	dummyPositionBuffer = std::make_shared<ge::gl::Buffer>(dummyPos.size()      * sizeof(float), dummyPos.data());
@@ -262,8 +260,9 @@ void OpenGLWindow::paintGL()
 	terrainShaderProgram->use();
 	terrainVAO->bind();
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+	terrainShaderProgram->set1f("uFieldSize", grassField->getFieldSize());
 
-	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glEnable(GL_PRIMITIVE_RESTART);
 	gl->glPrimitiveRestartIndex(grassField->getTerrain()->getRestartIndex());
 	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
@@ -284,27 +283,30 @@ void OpenGLWindow::paintGL()
 	/* DRAW GRASS */
 	grassShaderProgram->use();
 	grassVAO->bind();
+
+	// Uniforms
 	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 	grassShaderProgram->set1i("uTessLevel", tessLevel);
 	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
-	GLint uTime = glGetUniformLocation(grassShaderProgram->getId(), "uTime");
+	GLint uTime			= glGetUniformLocation(grassShaderProgram->getId(), "uTime");
+	GLint uFieldSize	= glGetUniformLocation(grassShaderProgram->getId(), "uFieldSize");
+	GLint uWindEnabled	= glGetUniformLocation(grassShaderProgram->getId(), "uWindEnabled");
+	GLint uAlphaTexture = glGetUniformLocation(grassShaderProgram->getId(), "uAlphaTexture");
+	GLint uHeightMap	= glGetUniformLocation(grassShaderProgram->getId(), "uHeightMap");
 	gl->glUniform1f(uTime, time);
-	GLint uFieldSize = glGetUniformLocation(grassShaderProgram->getId(), "uFieldSize");
 	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
-	GLint uWindEnabled = glGetUniformLocation(grassShaderProgram->getId(), "uWindEnabled");
 	gl->glUniform1i(uWindEnabled, windEnabled);
+	gl->glUniform1i(uAlphaTexture, 0);
+	gl->glUniform1i(uHeightMap, 1);
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 
+	// Textures
 	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
 	grassAlphaTexture->bind();
 	gl->glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
 	heightMap->bind();
-	GLint uAlphaTexture = glGetUniformLocation(grassShaderProgram->getId(), "uAlphaTexture");
-	gl->glUniform1i(uAlphaTexture, 0);
-	GLint uHeightMap = glGetUniformLocation(grassShaderProgram->getId(), "uHeightMap");
-	gl->glUniform1i(uHeightMap, 1);
 
 	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, grassField->getPatchCount());
 
