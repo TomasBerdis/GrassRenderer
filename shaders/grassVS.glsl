@@ -29,11 +29,11 @@ void main()
    float patchX = patchTranslations[gl_InstanceID][3][0];
    float patchY = patchTranslations[gl_InstanceID][3][1];
    float patchZ = patchTranslations[gl_InstanceID][3][2];
-   vec3 worldPos = vec3(patchX + position.x, patchY + position.y, patchZ + position.z);
+   vec3 worldPos       = vec3(patchX + position.x, patchY + position.y, patchZ + position.z);
    vec3 centerWorldPos = vec3(patchX + centerPosition.x, patchY + centerPosition.y, patchZ + centerPosition.z);
 
    /* Calculate height map coordinates */
-   float x = (centerWorldPos.x + uFieldSize/2) / uFieldSize;         // normalize x (possitive x is pointing away from us)
+   float x =      (centerWorldPos.x + uFieldSize/2) / uFieldSize;    // normalize x (possitive x is pointing away from us)
    float z = 1 - ((centerWorldPos.z + uFieldSize/2) / uFieldSize);   // normalize z (possitive z is pointing towards us)
    vec2 mapCoords = vec2(x, z);
    vec4 heightSample = texture(uHeightMap, mapCoords);

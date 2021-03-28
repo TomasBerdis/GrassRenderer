@@ -51,6 +51,7 @@ void Terrain::generateTerrain()
     terrainIndices   = new std::vector<unsigned int>;
     terrainTexCoords = new std::vector<glm::vec2>;
 
+    /* Generate vertices and texture coordinates */
     for (size_t row = 0; row < rows; row++)
     {
         for (size_t col = 0; col < cols; col++)
@@ -67,6 +68,7 @@ void Terrain::generateTerrain()
 
     restartIndex = terrainVertices->size();
 
+    /* Generate indices */
     for (auto i = 0; i < rows - 1; i++)
     {
         for (auto j = 0; j < cols; j++)

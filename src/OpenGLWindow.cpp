@@ -166,6 +166,7 @@ void OpenGLWindow::initializeGL()
 		0.0f, 1.0f
 	};
 
+	/* Grass VAO setup */
 	grassPositionBuffer		  = grassField->getGrassVertexBuffer();
 	grassCenterPositionBuffer = grassField->getGrassCenterBuffer();
 	grassTexCoordBuffer		  = grassField->getGrassTexCoordBuffer();
@@ -177,6 +178,7 @@ void OpenGLWindow::initializeGL()
 	grassVAO->addAttrib(grassTexCoordBuffer,	   2, 4, GL_FLOAT);
 	grassVAO->addAttrib(grassRandomsBuffer,		   3, 4, GL_FLOAT);
 
+	/* Terrain VAO setup */
 	terrainPositionBuffer = grassField->getTerrain()->getTerrainVertexBuffer();
 	terrainIndexBuffer    = grassField->getTerrain()->getTerrainIndexBuffer();
 	terrainTexCoordBuffer = grassField->getTerrain()->getTerrainTexCoordBuffer();
@@ -186,6 +188,7 @@ void OpenGLWindow::initializeGL()
 	terrainVAO->addAttrib(terrainPositionBuffer, 0, 2, GL_FLOAT);
 	terrainVAO->addAttrib(terrainTexCoordBuffer, 1, 2, GL_FLOAT);
 
+	/* Dummy VAO setup */
 	dummyPositionBuffer = std::make_shared<ge::gl::Buffer>(dummyPos.size()      * sizeof(float), dummyPos.data());
 	dummyTexCoordBuffer = std::make_shared<ge::gl::Buffer>(dummyTexCoord.size() * sizeof(float), dummyTexCoord.data());
 
@@ -196,22 +199,21 @@ void OpenGLWindow::initializeGL()
 	// Elapsed time since initialization
 	timer.start();
 
+	// Timer for application ticks
 	tickTimer = new QTimer(this);
 	QObject::connect(tickTimer, SIGNAL(timeout()), this, SLOT(tick()));
 	tickTimer->start();
 
+	// Texture parameters
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S    , GL_CLAMP_TO_EDGE);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T    , GL_CLAMP_TO_EDGE);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+	// Load textures (mirrored vertically because of y axis differences between OpenGL and QImage)
 	debugTexture	  = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
 	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA));
 	heightMap		  = new QOpenGLTexture(QImage(HEIGHT_MAP).mirrored());
-	heightMap->setWrapMode(QOpenGLTexture::ClampToEdge);
-
-	//debug
-	
 }
 
 void OpenGLWindow::setTessLevel(int tessLevel)

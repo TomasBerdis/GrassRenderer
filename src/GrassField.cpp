@@ -102,15 +102,15 @@ void GrassField::generatePatchPositions()
 	patchPositions = new std::vector<glm::vec3>();
 
 	/* Calculate first patch's position in lower left corner of a field */
-	glm::vec3 startPos = worldCenterPos - glm::vec3(fieldSize / 2, 0.0f, fieldSize / 2);
-	startPos = startPos + glm::vec3(patchSize / 2, 0.0f, patchSize / 2);	// we want the center of the patch
+	glm::vec3 startPos = worldCenterPos + glm::vec3(-fieldSize / 2, 0.0f, fieldSize / 2);
+	startPos = startPos + glm::vec3(patchSize / 2, 0.0f, -patchSize / 2);	// we want the center of the patch
 
 	int patchesInRowOrCol = fieldSize / patchSize;
 	for (size_t row = 0; row < patchesInRowOrCol; row++)
 	{
 		for (size_t col = 0; col < patchesInRowOrCol; col++)
 		{
-			patchPositions->push_back(startPos + glm::vec3((row * patchSize), 0.0f, (col * patchSize)));
+			patchPositions->push_back(startPos + glm::vec3((col * patchSize), 0.0f, -(row * patchSize)));
 		}
 	}
 }
@@ -146,22 +146,22 @@ void GrassField::generateGrassGeometry()
 		generateRandoms();
 
 		/* Patch values */
-		float wMin = 0.1f;
-		float wMax = 0.5f;
-		float hMin = 2.0f;
-		float hMax = 5.0f;
+		float wMin	  = 0.1f;
+		float wMax	  = 0.5f;
+		float hMin	  = 2.0f;
+		float hMax	  = 5.0f;
 		float density = 1.0f;
 
-		float w = wMin + randoms[8] * (wMax - wMin);
+		float w =  wMin + randoms[8] * (wMax - wMin);
 		float h = (hMin + randoms[8] * (hMax - hMin)) * density;
 
 		glm::vec4 pc{ 0.0f, 0.0f, 0.0f, 1.0f };	// bottom center
 
 		/* Grass blade vertices */
 		glm::vec4 p1 = pc + glm::vec4(-0.5f * w, 0.0f, 0.0f, 0.0f);
-		glm::vec4 p2 = pc + glm::vec4(0.5f * w, 0.0f, 0.0f, 0.0f);
-		glm::vec4 p3 = pc + glm::vec4(0.5f * w, h, 0.0f, 0.0f);
-		glm::vec4 p4 = pc + glm::vec4(-0.5f * w, h, 0.0f, 0.0f);
+		glm::vec4 p2 = pc + glm::vec4( 0.5f * w, 0.0f, 0.0f, 0.0f);
+		glm::vec4 p3 = pc + glm::vec4( 0.5f * w,	h, 0.0f, 0.0f);
+		glm::vec4 p4 = pc + glm::vec4(-0.5f * w,	h, 0.0f, 0.0f);
 
 		/* Move within a patch */
 		glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(randoms[9], 0.0f, randoms[10]));
