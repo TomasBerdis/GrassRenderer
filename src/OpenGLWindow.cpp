@@ -8,7 +8,7 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -250.0f);	// reset rotation
 
 	/* Create grass field */
-	grassField = new GrassField(200, 10, 100);
+	grassField = new GrassField(200, 10, 500);
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -40,15 +40,6 @@ void OpenGLWindow::initializeGL()
 	QObject::connect(settingsWidget, SIGNAL(rasterizationModeChanged(GLenum)), this, SLOT(setRasterizationMode(GLenum)));
 
 	/* Shaders */
-	std::cout << "Grass vertex shader path: "					<< GRASS_VS   << std::endl;
-	std::cout << "Grass tessellation control shader path: "		<< GRASS_TCS  << std::endl;
-	std::cout << "Grass tessellation evaluation shader path: "	<< GRASS_TES  << std::endl;
-	std::cout << "Grass fragment shader path: "					<< GRASS_FS   << std::endl;
-	std::cout << "Terrain vertex shader path: "					<< TERRAIN_VS << std::endl;
-	std::cout << "Terrain fragment shader path: "				<< TERRAIN_FS << std::endl;
-	std::cout << "Dummy vertex shader path: "					<< DUMMY_VS   << std::endl;
-	std::cout << "Dummy fragment shader path: "					<< DUMMY_FS   << std::endl;
-
 	std::shared_ptr<ge::gl::Shader> grassVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER		    , ge::util::loadTextFile(GRASS_VS));
 	std::shared_ptr<ge::gl::Shader> grassTCS	= std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER   , ge::util::loadTextFile(GRASS_TCS));
 	std::shared_ptr<ge::gl::Shader> grassTES	= std::make_shared<ge::gl::Shader>(GL_TESS_EVALUATION_SHADER, ge::util::loadTextFile(GRASS_TES));
@@ -57,11 +48,14 @@ void OpenGLWindow::initializeGL()
 	std::shared_ptr<ge::gl::Shader> terrainFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(TERRAIN_FS));
 	std::shared_ptr<ge::gl::Shader> dummyVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile(DUMMY_VS));
 	std::shared_ptr<ge::gl::Shader> dummyFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(DUMMY_FS));
+	std::shared_ptr<ge::gl::Shader> skyboxVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile(SKYBOX_VS));
+	std::shared_ptr<ge::gl::Shader> skyboxFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(SKYBOX_FS));
 
 	/* Shader programs */
 	grassShaderProgram	 = std::make_shared<ge::gl::Program>(grassVS, grassTCS, grassTES, grassFS);
 	terrainShaderProgram = std::make_shared<ge::gl::Program>(terrainVS, terrainFS);
 	dummyShaderProgram	 = std::make_shared<ge::gl::Program>(dummyVS, dummyFS);
+	skyboxShaderProgram	 = std::make_shared<ge::gl::Program>(skyboxVS, skyboxFS);
 
 	/* Generating patches */
 	std::vector<glm::vec3> *patchPositions = grassField->getPatchPositions();
@@ -165,6 +159,50 @@ void OpenGLWindow::initializeGL()
 		0.0f, 0.0f,
 		0.0f, 1.0f
 	};
+	std::vector<float> skyboxPos
+	{         
+		-1.0f,  1.0f, -1.0f,
+		-1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f, -1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+
+		-1.0f, -1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f,
+		-1.0f, -1.0f,  1.0f,
+
+		-1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f, -1.0f,
+		 1.0f,  1.0f,  1.0f,
+		 1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f,  1.0f,
+		-1.0f,  1.0f, -1.0f,
+
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f, -1.0f,
+		 1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f,  1.0f,
+		 1.0f, -1.0f,  1.0f
+	};
 
 	/* Grass VAO setup */
 	grassPositionBuffer		  = grassField->getGrassVertexBuffer();
@@ -194,6 +232,12 @@ void OpenGLWindow::initializeGL()
 	dummyVAO->addAttrib(dummyPositionBuffer, 0, 4, GL_FLOAT);
 	dummyVAO->addAttrib(dummyTexCoordBuffer, 1, 2, GL_FLOAT);
 
+	/* Skybox VAO setup */
+	skyboxPositionBuffer = std::make_shared<ge::gl::Buffer>(skyboxPos.size() * sizeof(float), skyboxPos.data());
+
+	skyboxVAO = std::make_shared<ge::gl::VertexArray>();
+	skyboxVAO->addAttrib(skyboxPositionBuffer, 0, 3, GL_FLOAT);
+
 	// Elapsed time since initialization
 	timer.start();
 
@@ -212,6 +256,18 @@ void OpenGLWindow::initializeGL()
 	debugTexture	  = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
 	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA));
 	heightMap		  = new QOpenGLTexture(QImage(HEIGHT_MAP).mirrored());
+
+	// Load skybox
+	std::vector<QString> faces
+	{
+		SKYBOX_RIGHT,
+		SKYBOX_LEFT,
+		SKYBOX_TOP,
+		SKYBOX_BOTTOM,
+		SKYBOX_FRONT,
+		SKYBOX_BACK
+	};
+	skyboxTexture = loadSkybox(faces);
 }
 
 void OpenGLWindow::setTessLevel(int tessLevel)
@@ -255,6 +311,22 @@ void OpenGLWindow::paintGL()
 	//debug
 	glm::vec3 camPos = camera->getPosition();
 	std::cout << "Camera position: " << camPos.x << ", " << camPos.y << ", " << camPos.z << std::endl;
+
+	/* DRAW SKYBOX */
+	gl->glDepthMask(GL_FALSE);
+	//gl->glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+	skyboxShaderProgram->use();
+	glm::mat4 view = glm::mat4(glm::mat3(camera->getViewMatrix())); // remove translation from the view matrix
+	glm::mat4 proj = camera->getProjectionMatrix();
+	glm::mat4 skyboxMVP = proj * view;
+	skyboxShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(skyboxMVP));
+	// skybox cube
+	skyboxVAO->bind();
+	gl->glActiveTexture(GL_TEXTURE0);
+	gl->glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
+	//gl->glDepthFunc(GL_LESS); // set depth function back to default
+	gl->glDepthMask(GL_TRUE);
 
 	/* DRAW TERRAIN */
 	terrainShaderProgram->use();
@@ -384,4 +456,25 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 	}
 
 	update();
+}
+
+unsigned int OpenGLWindow::loadSkybox(std::vector<QString> faces)
+{
+	unsigned int textureID;
+	gl->glGenTextures(1, &textureID);
+	gl->glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+	for (unsigned int i = 0; i < faces.size(); i++)
+	{
+		QImage image(faces[i]);
+		image = image.convertToFormat(QImage::Format_ARGB32);
+		gl->glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, image.width(), image.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
+	}
+	gl->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	gl->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	gl->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	gl->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	gl->glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	return textureID;
 }

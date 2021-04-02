@@ -39,6 +39,12 @@ find_file(dummyVS dummyVS.glsl
 find_file(dummyFS dummyFS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
 )
+find_file(skyboxVS skyboxVS.glsl
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
+)
+find_file(skyboxFS skyboxFS.glsl
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
+)
 find_file(debugTexture debug_texture.png
     HINTS ${CMAKE_CURRENT_LIST_DIR}/res
 )
@@ -48,13 +54,35 @@ find_file(grassAlpha grass_alpha.png
 find_file(heightMap height_map.png
     HINTS ${CMAKE_CURRENT_LIST_DIR}/res
 )
+find_file(skyboxTop skybox_top.png
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/res
+)
+find_file(skyboxBottom skybox_bottom.png
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/res
+)
+find_file(skyboxFront skybox_front.png
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/res
+)
+find_file(skyboxBack skybox_back.png
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/res
+)
+find_file(skyboxLeft skybox_left.png
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/res
+)
+find_file(skyboxRight skybox_right.png
+    HINTS ${CMAKE_CURRENT_LIST_DIR}/res
+)
 
 add_executable(${PROJECT_NAME} ${sources})
 target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Widgets geGL geUtil)
-target_compile_definitions(${PROJECT_NAME} PUBLIC   "GRASS_VS=\"${grassVS}\"" "GRASS_FS=\"${grassFS}\"" "GRASS_TCS=\"${grassTCS}\"" "GRASS_TES=\"${grassTES}\""
-                                                    "TERRAIN_VS=\"${terrainVS}\"" "TERRAIN_FS=\"${terrainFS}\""
-                                                    "DUMMY_VS=\"${dummyVS}\"" "DUMMY_FS=\"${dummyFS}\""
-                                                    "DEBUG_TEXTURE=\"${debugTexture}\"" "GRASS_ALPHA=\"${grassAlpha}\"" "HEIGHT_MAP=\"${heightMap}\"")
+target_compile_definitions(${PROJECT_NAME} PUBLIC   "GRASS_VS=\"${grassVS}\""           "GRASS_FS=\"${grassFS}\""           "GRASS_TCS=\"${grassTCS}\""     "GRASS_TES=\"${grassTES}\""
+                                                    "TERRAIN_VS=\"${terrainVS}\""       "TERRAIN_FS=\"${terrainFS}\""
+                                                    "DUMMY_VS=\"${dummyVS}\""           "DUMMY_FS=\"${dummyFS}\""
+                                                    "SKYBOX_VS=\"${skyboxVS}\""         "SKYBOX_FS=\"${skyboxFS}\""
+                                                    "DEBUG_TEXTURE=\"${debugTexture}\"" "GRASS_ALPHA=\"${grassAlpha}\""     "HEIGHT_MAP=\"${heightMap}\""
+                                                    "SKYBOX_TOP=\"${skyboxTop}\""       "SKYBOX_BOTTOM=\"${skyboxBottom}\""
+                                                    "SKYBOX_FRONT=\"${skyboxFront}\""   "SKYBOX_BACK=\"${skyboxBack}\""
+                                                    "SKYBOX_LEFT=\"${skyboxLeft}\""     "SKYBOX_RIGHT=\"${skyboxRight}\"")
 
 # setting up the MSVC helper var
 get_target_property(Qt5dllPath Qt5::Gui IMPORTED_LOCATION_RELEASE)

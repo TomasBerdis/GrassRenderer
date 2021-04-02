@@ -53,10 +53,12 @@ protected:
 	void mouseMoveEvent(QMouseEvent* event);
 	void keyPressEvent(QKeyEvent* event);
 
+	unsigned int loadSkybox(std::vector<QString> faces);
+
 private:
 	bool initialized;
-	int tessLevel	 = 8;
-	float maxBendingFactor = 0.5;
+	int tessLevel	 = 5;
+	float maxBendingFactor = 1.5;
 	int windowWidth;
 	int windowHeight;
 
@@ -79,6 +81,7 @@ private:
 	std::shared_ptr<ge::gl::Buffer> terrainTexCoordBuffer;
 	std::shared_ptr<ge::gl::Buffer> dummyPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> dummyTexCoordBuffer;
+	std::shared_ptr<ge::gl::Buffer> skyboxPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> patchTransSSBO;
 
 	std::shared_ptr<ge::gl::Context>	 gl;
@@ -86,10 +89,12 @@ private:
 	std::shared_ptr<ge::gl::Program>	 grassShaderProgram;
 	std::shared_ptr<ge::gl::Program>	 terrainShaderProgram;
 	std::shared_ptr<ge::gl::Program>	 dummyShaderProgram;
+	std::shared_ptr<ge::gl::Program>	 skyboxShaderProgram;
 
 	std::shared_ptr<ge::gl::VertexArray> grassVAO;
 	std::shared_ptr<ge::gl::VertexArray> terrainVAO;
 	std::shared_ptr<ge::gl::VertexArray> dummyVAO;
+	std::shared_ptr<ge::gl::VertexArray> skyboxVAO;
 
 	QOpenGLContext* context;
 	QSurfaceFormat  surfaceFormat;
@@ -99,4 +104,6 @@ private:
 	QOpenGLTexture *debugTexture;
 	QOpenGLTexture *grassAlphaTexture;
 	QOpenGLTexture *heightMap;
+
+	unsigned int skyboxTexture;
 };
