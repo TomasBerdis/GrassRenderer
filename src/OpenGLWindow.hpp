@@ -49,6 +49,7 @@ protected:
 	void paintGL() override;
 
 	void printError() const;
+	void drawGui();
 
 	/* Event handlers */
 	void wheelEvent(QWheelEvent* event);
@@ -109,4 +110,8 @@ private:
 	QOpenGLTexture *heightMap;
 
 	unsigned int skyboxTexture;
+	
+	/* Debug parameters */
+	GLenum grassRasterizationMode = GL_FILL;
+	GLenum terrainRasterizationMode = GL_FILL;
 };

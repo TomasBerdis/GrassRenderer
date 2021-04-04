@@ -35,13 +35,6 @@ void OpenGLWindow::initializeGL()
 	gl->glEnable(GL_BLEND);
 	gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	/* Initialize settings widget */
-	settingsWidget = new SettingsWidget(this);
-	settingsWidget->setParent(this);
-	settingsWidget->show();
-	QObject::connect(settingsWidget, SIGNAL(tessLevelChanged(int)), this, SLOT(setTessLevel(int)));
-	QObject::connect(settingsWidget, SIGNAL(rasterizationModeChanged(GLenum)), this, SLOT(setRasterizationMode(GLenum)));
-
 	/* Shaders */
 	std::shared_ptr<ge::gl::Shader> grassVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER		    , ge::util::loadTextFile(GRASS_VS));
 	std::shared_ptr<ge::gl::Shader> grassTCS	= std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER   , ge::util::loadTextFile(GRASS_TCS));
@@ -302,9 +295,7 @@ void OpenGLWindow::resizeGL(int w, int h)
 void OpenGLWindow::paintGL()
 {
 	/* RENDER CALL BEGIN */
-	/* ImGui */
-	QtImGui::newFrame();
-	ImGui::Text("Hello");
+	drawGui();
 
 	const qreal retinaScale = devicePixelRatio();
 
@@ -314,11 +305,6 @@ void OpenGLWindow::paintGL()
 
 	glm::mat4 mvp = camera->getProjectionMatrix() * camera->getViewMatrix();
 	float time    = timer.elapsed() / 10;
-
-	//debug
-	glm::vec3 camPos = camera->getPosition();
-	std::cout << "Camera position: " << camPos.x << ", " << camPos.y << ", " << camPos.z << std::endl;
-
 
 	/* DRAW SKYBOX */
 	gl->glDepthMask(GL_FALSE);
@@ -340,7 +326,7 @@ void OpenGLWindow::paintGL()
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 	terrainShaderProgram->set1f("uFieldSize", grassField->getFieldSize());
 
-	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, terrainRasterizationMode);
 	gl->glEnable(GL_PRIMITIVE_RESTART);
 	gl->glPrimitiveRestartIndex(grassField->getTerrain()->getRestartIndex());
 	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
@@ -377,7 +363,7 @@ void OpenGLWindow::paintGL()
 	gl->glUniform1i(uAlphaTexture, 0);
 	gl->glUniform1i(uHeightMap, 1);
 
-	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
+	gl->glPolygonMode(GL_FRONT_AND_BACK, grassRasterizationMode);
 	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
 
 	// Textures
@@ -389,6 +375,7 @@ void OpenGLWindow::paintGL()
 	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, grassField->getPatchCount());
 
 	/* ImGui */
+	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	ImGui::Render();
 	QtImGui::render();
 
@@ -403,6 +390,73 @@ void OpenGLWindow::printError() const
 	{
 		std::cout << err << std::endl;
 	}
+}
+
+void OpenGLWindow::drawGui()
+{
+	/* ImGui */
+	QtImGui::newFrame();
+
+	using namespace ImGui;
+
+	ShowDemoWindow();
+	SetNextWindowFocus();
+
+	if (Begin("Application parameters", nullptr, NULL))
+	{
+		if (TreeNode("Grass"))
+		{
+			SliderInt("Tessellation level", &tessLevel, 0, 10, "%d", NULL);
+			if (TreeNode("Rasterization mode"))
+			{
+				static int selected = -1;
+				if (Selectable("GL_POINT", selected == 0))
+				{
+					selected = 0;
+					grassRasterizationMode = GL_POINT;
+				}
+				if (Selectable("GL_LINE", selected == 1))
+				{
+					selected = 1;
+					grassRasterizationMode = GL_LINE;
+				}
+				if (Selectable("GL_FILL", selected == 2))
+				{
+					selected = 2;
+					grassRasterizationMode = GL_FILL;
+				}
+				TreePop();
+			}
+			TreePop();
+		}
+		if (TreeNode("Terrain"))
+		{
+			if (TreeNode("Rasterization mode"))
+			{
+				static int selected = -1;
+				if (Selectable("GL_POINT", selected == 0))
+				{
+					selected = 0;
+					terrainRasterizationMode = GL_POINT;
+				}
+				if (Selectable("GL_LINE", selected == 1))
+				{
+					selected = 1;
+					terrainRasterizationMode = GL_LINE;
+				}
+				if (Selectable("GL_FILL", selected == 2))
+				{
+					selected = 2;
+					terrainRasterizationMode = GL_FILL;
+				}
+				TreePop();
+			}
+			TreePop();
+		}
+
+	}
+
+	End();
 }
 
 void OpenGLWindow::wheelEvent(QWheelEvent *event)
