@@ -295,92 +295,33 @@ void OpenGLWindow::resizeGL(int w, int h)
 void OpenGLWindow::paintGL()
 {
 	/* RENDER CALL BEGIN */
-	if (guiEnabled)
-	{
-		drawGui();
-	}
-
 	const qreal retinaScale = devicePixelRatio();
+
+	mvp = camera->getProjectionMatrix() * camera->getViewMatrix();
+	time = timer.elapsed() / 10;
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
 	gl->glClearColor(0.25, 0.3, 0.3, 1.0);
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	glm::mat4 mvp = camera->getProjectionMatrix() * camera->getViewMatrix();
-	float time    = timer.elapsed() / 10;
+	/* INITIALIZE GUI */
+	if (guiEnabled)
+		initGui();
 
 	/* DRAW SKYBOX */
 	if (skyboxEnabled)
-	{
-		gl->glDepthMask(GL_FALSE);
-		skyboxShaderProgram->use();
-		glm::mat4 view = glm::mat4(glm::mat3(camera->getViewMatrix())); // remove translation from the view matrix
-		glm::mat4 proj = camera->getProjectionMatrix();
-		glm::mat4 skyboxMVP = proj * view;
-		skyboxShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(skyboxMVP));
-		// skybox cube
-		skyboxVAO->bind();
-		gl->glActiveTexture(GL_TEXTURE0);
-		gl->glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-		gl->glDrawArrays(GL_TRIANGLES, 0, 36);
-		gl->glDepthMask(GL_TRUE);
-	}
+		drawSkybox();
 
 	/* DRAW TERRAIN */
-	terrainShaderProgram->use();
-	terrainVAO->bind();
-	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-	terrainShaderProgram->set1f("uFieldSize", grassField->getFieldSize());
-
-	gl->glPolygonMode(GL_FRONT_AND_BACK, terrainRasterizationMode);
-	gl->glEnable(GL_PRIMITIVE_RESTART);
-	gl->glPrimitiveRestartIndex(grassField->getTerrain()->getRestartIndex());
-	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
-	heightMap->bind();
-	gl->glDrawElements(GL_TRIANGLE_STRIP, grassField->getTerrain()->getIndexCount(), GL_UNSIGNED_INT, 0);
-	gl->glDisable(GL_PRIMITIVE_RESTART);
+	drawTerrain();
 
 	/* DRAW DUMMY */
-	dummyShaderProgram->use();
-	dummyVAO->bind();
-	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-
-	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
-	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
-	debugTexture->bind();
-	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
+	drawDummy();
 
 	/* DRAW GRASS */
-	grassShaderProgram->use();
-	grassVAO->bind();
+	drawGrass();
 
-	// Uniforms
-	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-	grassShaderProgram->set1i("uTessLevel", tessLevel);
-	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
-	GLint uTime			= glGetUniformLocation(grassShaderProgram->getId(), "uTime");
-	GLint uFieldSize	= glGetUniformLocation(grassShaderProgram->getId(), "uFieldSize");
-	GLint uWindEnabled	= glGetUniformLocation(grassShaderProgram->getId(), "uWindEnabled");
-	GLint uAlphaTexture = glGetUniformLocation(grassShaderProgram->getId(), "uAlphaTexture");
-	GLint uHeightMap	= glGetUniformLocation(grassShaderProgram->getId(), "uHeightMap");
-	gl->glUniform1f(uTime, time);
-	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
-	gl->glUniform1i(uWindEnabled, windEnabled);
-	gl->glUniform1i(uAlphaTexture, 0);
-	gl->glUniform1i(uHeightMap, 1);
-
-	gl->glPolygonMode(GL_FRONT_AND_BACK, grassRasterizationMode);
-	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
-
-	// Textures
-	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
-	grassAlphaTexture->bind();
-	gl->glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
-	heightMap->bind();
-
-	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, grassField->getPatchCount());
-
-	/* ImGui */
+	/* DRAW GUI */
 	if (guiEnabled)
 	{
 		gl->glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -401,14 +342,14 @@ void OpenGLWindow::printError() const
 	}
 }
 
-void OpenGLWindow::drawGui()
+void OpenGLWindow::initGui()
 {
 	/* ImGui */
 	QtImGui::newFrame();
 
 	using namespace ImGui;
 
-	ShowDemoWindow();
+	//ShowDemoWindow();
 
 	ImGuiStyle &style	= ImGui::GetStyle();
 	style.FrameRounding = 10.0f;
@@ -469,6 +410,96 @@ void OpenGLWindow::drawGui()
 	}
 
 	ImGui::End();
+}
+
+void OpenGLWindow::drawTerrain()
+{
+	terrainShaderProgram->use();
+	terrainVAO->bind();
+	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+	terrainShaderProgram->set1f("uFieldSize", grassField->getFieldSize());
+
+	gl->glPolygonMode(GL_FRONT_AND_BACK, terrainRasterizationMode);
+	gl->glEnable(GL_PRIMITIVE_RESTART);
+	gl->glPrimitiveRestartIndex(grassField->getTerrain()->getRestartIndex());
+
+	// Textures
+	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
+	heightMap->bind();
+
+	// Draw
+	gl->glDrawElements(GL_TRIANGLE_STRIP, grassField->getTerrain()->getIndexCount(), GL_UNSIGNED_INT, 0);
+
+	gl->glDisable(GL_PRIMITIVE_RESTART);
+}
+
+void OpenGLWindow::drawGrass()
+{
+	GLint uTime			= gl->glGetUniformLocation(grassShaderProgram->getId(), "uTime");
+	GLint uFieldSize	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uFieldSize");
+	GLint uWindEnabled	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uWindEnabled");
+	GLint uAlphaTexture = gl->glGetUniformLocation(grassShaderProgram->getId(), "uAlphaTexture");
+	GLint uHeightMap	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uHeightMap");
+
+	grassShaderProgram->use();
+	grassVAO->bind();
+
+	// Uniforms
+	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+	grassShaderProgram->set1i("uTessLevel", tessLevel);
+	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
+	gl->glUniform1f(uTime, time);
+	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
+	gl->glUniform1i(uWindEnabled, windEnabled);
+	gl->glUniform1i(uAlphaTexture, 0);
+	gl->glUniform1i(uHeightMap, 1);
+
+	gl->glPolygonMode(GL_FRONT_AND_BACK, grassRasterizationMode);
+	gl->glPatchParameteri(GL_PATCH_VERTICES, 4);
+
+	// Textures
+	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
+	grassAlphaTexture->bind();
+	gl->glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 1
+	heightMap->bind();
+
+	// Draw
+	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, grassField->getPatchCount());
+}
+
+void OpenGLWindow::drawSkybox()
+{
+	glm::mat4 view = glm::mat4(glm::mat3(camera->getViewMatrix())); // remove translation from the view matrix
+	glm::mat4 proj = camera->getProjectionMatrix();
+	glm::mat4 skyboxMVP = proj * view;
+
+	gl->glDepthMask(GL_FALSE);
+
+	skyboxShaderProgram->use();
+	skyboxShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(skyboxMVP));
+	skyboxVAO->bind();
+
+	// Textures
+	gl->glActiveTexture(GL_TEXTURE0);
+	gl->glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+
+	// Draw
+	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	gl->glDepthMask(GL_TRUE);
+}
+
+void OpenGLWindow::drawDummy()
+{
+	dummyShaderProgram->use();
+	dummyVAO->bind();
+	dummyShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
+
+	gl->glPolygonMode(GL_FRONT_AND_BACK, rasterizationMode);
+	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
+	debugTexture->bind();
+
+	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 void OpenGLWindow::wheelEvent(QWheelEvent *event)

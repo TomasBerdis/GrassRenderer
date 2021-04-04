@@ -49,7 +49,11 @@ protected:
 	void paintGL() override;
 
 	void printError() const;
-	void drawGui();
+	void initGui();
+	void drawTerrain();
+	void drawGrass();
+	void drawSkybox();
+	void drawDummy();
 
 	/* Event handlers */
 	void wheelEvent(QWheelEvent* event);
@@ -63,12 +67,15 @@ private:
 	bool initialized;
 	int tessLevel = 5;
 	float maxBendingFactor = 1.5;
+	float time;
 	int windowWidth;
 	int windowHeight;
 
 	bool windEnabled = true;
 	bool skyboxEnabled = true;
 	bool guiEnabled = true;
+
+	glm::mat4 mvp;
 
 	Camera *camera;
 	GrassField *grassField;
