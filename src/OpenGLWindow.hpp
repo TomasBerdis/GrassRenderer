@@ -19,6 +19,9 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/random.hpp>
 
+#include <QtImGui.h>
+#include <imgui.h>
+
 #include <memory>
 #include <iostream>
 

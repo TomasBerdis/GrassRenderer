@@ -13,7 +13,23 @@ set(sources
     src/SettingsWidget.cpp src/SettingsWidget.hpp
     src/Camera.cpp src/Camera.hpp
     src/GrassField.cpp src/GrassField.hpp
-    src/Terrain.cpp src/Terrain.hpp)
+    src/Terrain.cpp src/Terrain.hpp
+    3rdparty/imgui/imconfig.h
+    3rdparty/imgui/imgui.cpp
+    3rdparty/imgui/imgui.h
+    3rdparty/imgui/ImGuiRenderer.cpp
+    3rdparty/imgui/ImGuiRenderer.h
+    3rdparty/imgui/imgui_demo.cpp
+    3rdparty/imgui/imgui_draw.cpp
+    3rdparty/imgui/imgui_internal.h
+    3rdparty/imgui/imgui_tables.cpp
+    3rdparty/imgui/imgui_widgets.cpp
+    3rdparty/imgui/imstb_rectpack.h
+    3rdparty/imgui/imstb_textedit.h
+    3rdparty/imgui/imstb_truetype.h
+    3rdparty/imgui/QtImGui.cpp
+    3rdparty/imgui/QtImGui.h
+    )
 
 find_file(grassVS grassVS.glsl
     HINTS ${CMAKE_CURRENT_LIST_DIR}/shaders
@@ -74,6 +90,7 @@ find_file(skyboxRight skybox_right.png
 )
 
 add_executable(${PROJECT_NAME} ${sources})
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/3rdparty/imgui)
 target_link_libraries(${PROJECT_NAME} Qt5::Gui Qt5::Widgets geGL geUtil)
 target_compile_definitions(${PROJECT_NAME} PUBLIC   "GRASS_VS=\"${grassVS}\""           "GRASS_FS=\"${grassFS}\""           "GRASS_TCS=\"${grassTCS}\""     "GRASS_TES=\"${grassTES}\""
                                                     "TERRAIN_VS=\"${terrainVS}\""       "TERRAIN_FS=\"${terrainFS}\""

@@ -23,6 +23,9 @@ void OpenGLWindow::initializeGL()
 {
 	initializeOpenGLFunctions();
 
+	/* Initialize QtImGui */
+	QtImGui::initialize(this);
+
 	/* Initialize GPUEngine */
 	ge::gl::init();
 	gl = std::make_shared<ge::gl::Context>();
@@ -299,6 +302,10 @@ void OpenGLWindow::resizeGL(int w, int h)
 void OpenGLWindow::paintGL()
 {
 	/* RENDER CALL BEGIN */
+	/* ImGui */
+	QtImGui::newFrame();
+	ImGui::Text("Hello");
+
 	const qreal retinaScale = devicePixelRatio();
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
@@ -312,9 +319,9 @@ void OpenGLWindow::paintGL()
 	glm::vec3 camPos = camera->getPosition();
 	std::cout << "Camera position: " << camPos.x << ", " << camPos.y << ", " << camPos.z << std::endl;
 
+
 	/* DRAW SKYBOX */
 	gl->glDepthMask(GL_FALSE);
-	//gl->glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 	skyboxShaderProgram->use();
 	glm::mat4 view = glm::mat4(glm::mat3(camera->getViewMatrix())); // remove translation from the view matrix
 	glm::mat4 proj = camera->getProjectionMatrix();
@@ -325,7 +332,6 @@ void OpenGLWindow::paintGL()
 	gl->glActiveTexture(GL_TEXTURE0);
 	gl->glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
 	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
-	//gl->glDepthFunc(GL_LESS); // set depth function back to default
 	gl->glDepthMask(GL_TRUE);
 
 	/* DRAW TERRAIN */
@@ -381,6 +387,10 @@ void OpenGLWindow::paintGL()
 	heightMap->bind();
 
 	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, grassField->getPatchCount());
+
+	/* ImGui */
+	ImGui::Render();
+	QtImGui::render();
 
 	/* RENDER CALL END */
 	printError();
