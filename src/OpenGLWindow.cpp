@@ -295,30 +295,36 @@ void OpenGLWindow::resizeGL(int w, int h)
 void OpenGLWindow::paintGL()
 {
 	/* RENDER CALL BEGIN */
-	drawGui();
+	if (guiEnabled)
+	{
+		drawGui();
+	}
 
 	const qreal retinaScale = devicePixelRatio();
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
-	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
+	gl->glClearColor(0.25, 0.3, 0.3, 1.0);
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glm::mat4 mvp = camera->getProjectionMatrix() * camera->getViewMatrix();
 	float time    = timer.elapsed() / 10;
 
 	/* DRAW SKYBOX */
-	gl->glDepthMask(GL_FALSE);
-	skyboxShaderProgram->use();
-	glm::mat4 view = glm::mat4(glm::mat3(camera->getViewMatrix())); // remove translation from the view matrix
-	glm::mat4 proj = camera->getProjectionMatrix();
-	glm::mat4 skyboxMVP = proj * view;
-	skyboxShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(skyboxMVP));
-	// skybox cube
-	skyboxVAO->bind();
-	gl->glActiveTexture(GL_TEXTURE0);
-	gl->glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
-	gl->glDepthMask(GL_TRUE);
+	if (skyboxEnabled)
+	{
+		gl->glDepthMask(GL_FALSE);
+		skyboxShaderProgram->use();
+		glm::mat4 view = glm::mat4(glm::mat3(camera->getViewMatrix())); // remove translation from the view matrix
+		glm::mat4 proj = camera->getProjectionMatrix();
+		glm::mat4 skyboxMVP = proj * view;
+		skyboxShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(skyboxMVP));
+		// skybox cube
+		skyboxVAO->bind();
+		gl->glActiveTexture(GL_TEXTURE0);
+		gl->glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+		gl->glDrawArrays(GL_TRIANGLES, 0, 36);
+		gl->glDepthMask(GL_TRUE);
+	}
 
 	/* DRAW TERRAIN */
 	terrainShaderProgram->use();
@@ -375,9 +381,12 @@ void OpenGLWindow::paintGL()
 	gl->glDrawArraysInstanced(GL_PATCHES, 0, grassField->getGrassBladeCount() * 4, grassField->getPatchCount());
 
 	/* ImGui */
-	gl->glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	ImGui::Render();
-	QtImGui::render();
+	if (guiEnabled)
+	{
+		gl->glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		ImGui::Render();
+		QtImGui::render();
+	}
 
 	/* RENDER CALL END */
 	printError();
@@ -400,63 +409,66 @@ void OpenGLWindow::drawGui()
 	using namespace ImGui;
 
 	ShowDemoWindow();
-	SetNextWindowFocus();
+
+	ImGuiStyle &style	= ImGui::GetStyle();
+	style.FrameRounding = 10.0f;
+	style.GrabRounding	= 10.0f;
+	style.Colors[ImGuiCol_FrameBg]			= ImVec4(0.160, 0.480, 0.199, 0.540);
+	style.Colors[ImGuiCol_TitleBgActive]	= ImVec4(0.160, 0.480, 0.199, 0.540);
+	style.Colors[ImGuiCol_CheckMark]		= ImVec4(0.353, 0.880, 0.240, 1.000);
+	style.Colors[ImGuiCol_SliderGrab]		= ImVec4(0.353, 0.880, 0.240, 1.000);
 
 	if (Begin("Application parameters", nullptr, NULL))
 	{
-		if (TreeNode("Grass"))
+		Text("Grass");
+
+		SliderInt("Tessellation level", &tessLevel, 0, 10, "%d", NULL);
+		SliderFloat("Max. bending factor", &maxBendingFactor, 0.0f, 5.0f, "%.1f");
+		
 		{
-			SliderInt("Tessellation level", &tessLevel, 0, 10, "%d", NULL);
-			if (TreeNode("Rasterization mode"))
-			{
-				static int selected = -1;
-				if (Selectable("GL_POINT", selected == 0))
-				{
-					selected = 0;
-					grassRasterizationMode = GL_POINT;
-				}
-				if (Selectable("GL_LINE", selected == 1))
-				{
-					selected = 1;
-					grassRasterizationMode = GL_LINE;
-				}
-				if (Selectable("GL_FILL", selected == 2))
-				{
-					selected = 2;
-					grassRasterizationMode = GL_FILL;
-				}
-				TreePop();
-			}
-			TreePop();
+			static int radioValue = 2;
+			Text("Rasterization mode");					SameLine();
+			RadioButton("GL_POINT##g", &radioValue, 0); SameLine();
+			RadioButton("GL_LINE##g" , &radioValue, 1); SameLine();
+			RadioButton("GL_FILL##g" , &radioValue, 2);
+
+			if (radioValue == 0)
+				grassRasterizationMode = GL_POINT;
+			else if (radioValue == 1)
+				grassRasterizationMode = GL_LINE;
+			else if (radioValue == 2)
+				grassRasterizationMode = GL_FILL;
 		}
-		if (TreeNode("Terrain"))
+
+		Separator();
+
+		Text("Terrain");
+
 		{
-			if (TreeNode("Rasterization mode"))
-			{
-				static int selected = -1;
-				if (Selectable("GL_POINT", selected == 0))
-				{
-					selected = 0;
-					terrainRasterizationMode = GL_POINT;
-				}
-				if (Selectable("GL_LINE", selected == 1))
-				{
-					selected = 1;
-					terrainRasterizationMode = GL_LINE;
-				}
-				if (Selectable("GL_FILL", selected == 2))
-				{
-					selected = 2;
-					terrainRasterizationMode = GL_FILL;
-				}
-				TreePop();
-			}
-			TreePop();
+			static int radioValue = 2;
+			Text("Rasterization mode");					SameLine();
+			RadioButton("GL_POINT##t", &radioValue, 0); SameLine();
+			RadioButton("GL_LINE##t" , &radioValue, 1); SameLine();
+			RadioButton("GL_FILL##t" , &radioValue, 2);
+
+			if (radioValue == 0)
+				terrainRasterizationMode = GL_POINT;
+			else if (radioValue == 1)
+				terrainRasterizationMode = GL_LINE;
+			else if (radioValue == 2)
+				terrainRasterizationMode = GL_FILL;
 		}
+
+		Separator();
+
+		Text("Scene");
+
+		Checkbox("Wind", &windEnabled);
+		Checkbox("Skybox", &skyboxEnabled);
 
 	}
 
-	End();
+	ImGui::End();
 }
 
 void OpenGLWindow::wheelEvent(QWheelEvent *event)
@@ -482,7 +494,7 @@ void OpenGLWindow::mouseMoveEvent(QMouseEvent *event)
 	float horizontalDelta = movePos.x() - clickStartPos.x();
 	float verticalDelta   = movePos.y() - clickStartPos.y();
 
-	if (event->buttons() & Qt::LeftButton)
+	if (event->buttons() & Qt::RightButton)
 		camera->rotateCamera(horizontalDelta, verticalDelta);
 
 	clickStartPos = event->pos();
@@ -506,17 +518,17 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 		camera->moveCamera(Camera::Direction::DOWN, cameraSpeed);
 	if (event->key() == Qt::Key_Escape)
 	{
-		if (settingsWidget->isVisible())
-			settingsWidget->hide();
+		if (guiEnabled == true)
+			guiEnabled = false;
 		else
-			settingsWidget->show();
+			guiEnabled = true;
 	}
 	if (event->key() == Qt::Key_V)
 	{
-		if (windEnabled == 1)
-			windEnabled = 0;
+		if (windEnabled == true)
+			windEnabled = false;
 		else
-			windEnabled = 1;
+			windEnabled = true;
 	}
 
 	update();

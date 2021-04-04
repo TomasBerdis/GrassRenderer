@@ -61,12 +61,14 @@ protected:
 
 private:
 	bool initialized;
-	int tessLevel	 = 5;
+	int tessLevel = 5;
 	float maxBendingFactor = 1.5;
 	int windowWidth;
 	int windowHeight;
 
-	int windEnabled = 1;
+	bool windEnabled = true;
+	bool skyboxEnabled = true;
+	bool guiEnabled = true;
 
 	Camera *camera;
 	GrassField *grassField;
@@ -75,6 +77,8 @@ private:
 	QElapsedTimer timer;
 
 	GLenum rasterizationMode = GL_FILL;
+	GLenum grassRasterizationMode = GL_FILL;
+	GLenum terrainRasterizationMode = GL_FILL;
 
 	std::shared_ptr<ge::gl::Buffer> grassPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> grassCenterPositionBuffer;
@@ -111,7 +115,4 @@ private:
 
 	unsigned int skyboxTexture;
 	
-	/* Debug parameters */
-	GLenum grassRasterizationMode = GL_FILL;
-	GLenum terrainRasterizationMode = GL_FILL;
 };
