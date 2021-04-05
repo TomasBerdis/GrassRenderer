@@ -14,7 +14,9 @@ out vec4 tcTexCoord[];
 out vec4 tcRandoms[];
 patch out vec3 controlPoints[2];
 
-uniform int uTessLevel;
+uniform int uMaxTessLevel;
+uniform float uMaxDistance;
+uniform vec3 uCameraPos;
 uniform mat4 uMVP;
 
 vec3 calcControlPoint(vec4 lower, vec4 upper)
@@ -30,7 +32,10 @@ vec3 calcControlPoint(vec4 lower, vec4 upper)
 
 void main()
 {
-    float tessellationLevel = uTessLevel;
+    /* Calculate distance to camera */
+    float cameraDistance = length(vPosition[0].xyz - uCameraPos);
+
+    float tessellationLevel = ceil(uMaxTessLevel * (1 - (cameraDistance / uMaxDistance)));
 
     if (gl_InvocationID == 0)
     {

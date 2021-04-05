@@ -1,7 +1,7 @@
 #include "Terrain.hpp"
 
-Terrain::Terrain(float width, float height, int rows, int cols)
-    : width{width}, height{height}, rows{rows}, cols{cols}
+Terrain::Terrain(float terrainSize, int rows, int cols)
+    : terrainSize{ terrainSize }, rows{ rows }, cols{ cols }
 {
     indexCount = (rows - 1) * cols * 2 + rows - 1;
     generateTerrain();
@@ -19,6 +19,11 @@ int Terrain::getIndexCount()
 int Terrain::getRestartIndex()
 {
     return restartIndex;
+}
+
+float Terrain::getTerrainSize()
+{
+    return terrainSize;
 }
 
 std::shared_ptr<ge::gl::Buffer> Terrain::getTerrainVertexBuffer()
@@ -49,8 +54,8 @@ void Terrain::generateTerrain()
         {
             float normalizedHeight = (float)row / (rows - 1);
             float normalizedWidth  = (float)col / (cols - 1);
-            float xOffset = glm::mix( -width / 2,   width / 2, normalizedWidth);
-            float zOffset = glm::mix( height / 2, -height / 2, normalizedHeight);
+            float xOffset = glm::mix( -terrainSize / 2, terrainSize / 2, normalizedWidth);
+            float zOffset = glm::mix(terrainSize / 2, -terrainSize / 2, normalizedHeight);
             terrainVertices->push_back(glm::vec2(xOffset, zOffset));
         }
     }

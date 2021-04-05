@@ -24,7 +24,6 @@ public:
     int getGrassBladeCount();
     int getPatchCount();
 
-    std::shared_ptr<Terrain> getTerrain();
 
     std::vector<glm::vec3> *getPatchPositions();
     std::vector<glm::vec4> *getGrassVertexPositions();
@@ -32,10 +31,12 @@ public:
     std::vector<glm::vec4> *getGrassTextureCoords();
     std::vector<glm::vec4> *getGrassRandoms();
 
+    std::shared_ptr<ge::gl::Buffer> getPatchTransSSBO();
     std::shared_ptr<ge::gl::Buffer> getGrassVertexBuffer();
     std::shared_ptr<ge::gl::Buffer> getGrassCenterBuffer();
     std::shared_ptr<ge::gl::Buffer> getGrassTexCoordBuffer();
     std::shared_ptr<ge::gl::Buffer> getGrassRandomsBuffer();
+    std::shared_ptr<ge::gl::VertexArray> getGrassVAO();
 
 protected:
     void generatePatchPositions();
@@ -49,8 +50,6 @@ private:
     int grassBladeCount;
     int patchCount;
     glm::vec3 worldCenterPos;
-
-    std::shared_ptr<Terrain> terrain;
 
     std::vector<glm::vec3> *patchPositions;
     std::vector<glm::vec4> *grassVertexPositions;

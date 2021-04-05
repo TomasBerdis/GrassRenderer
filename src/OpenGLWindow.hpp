@@ -25,7 +25,6 @@
 #include <memory>
 #include <iostream>
 
-#include "SettingsWidget.hpp"
 #include "Camera.hpp"
 #include "GrassField.hpp"
 
@@ -36,11 +35,7 @@ public:
 	explicit OpenGLWindow();
 	~OpenGLWindow();
 
-	SettingsWidget *settingsWidget;
-
 public slots:
-	void setTessLevel(int tessLevel);
-	void setRasterizationMode(GLenum mode);
 	void tick();
 
 protected:
@@ -55,6 +50,8 @@ protected:
 	void drawSkybox();
 	void drawDummy();
 
+	void regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainSize, int rows, int cols);
+
 	/* Event handlers */
 	void wheelEvent(QWheelEvent* event);
 	void mousePressEvent(QMouseEvent* event);
@@ -65,9 +62,11 @@ protected:
 
 private:
 	bool initialized;
-	int tessLevel = 5;
-	float maxBendingFactor = 1.5;
+	int maxTessLevel = 5;
+	float maxBendingFactor = 1.5f;
+	float maxDistance = 500.0f;
 	float time;
+	float cameraSpeed = 1.0f;
 	int windowWidth;
 	int windowHeight;
 
@@ -78,7 +77,8 @@ private:
 	glm::mat4 mvp;
 
 	Camera *camera;
-	GrassField *grassField;
+	std::shared_ptr<GrassField> grassField;
+	std::shared_ptr<Terrain> terrain;
 
 	QTimer *tickTimer;
 	QElapsedTimer timer;

@@ -8,14 +8,15 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -250.0f);	// reset rotation
 
 	/* Create grass field */
-	grassField = new GrassField(200, 10, 500);
+	grassField = std::make_shared<GrassField>(200.0f, 10.0f, 500);
+	terrain = std::make_shared<Terrain>(200.0f, 100, 100);
+
 }
 
 OpenGLWindow::~OpenGLWindow()
 {
 	makeCurrent();
 	delete camera;
-	delete grassField;
 	doneCurrent();
 }
 
@@ -54,17 +55,7 @@ void OpenGLWindow::initializeGL()
 	skyboxShaderProgram	 = std::make_shared<ge::gl::Program>(skyboxVS, skyboxFS);
 
 	/* Generating patches */
-	std::vector<glm::vec3> *patchPositions = grassField->getPatchPositions();
-	std::cout << "Number of patches: " << patchPositions->size() << std::endl;
-	std::vector<glm::mat4> patchTranslations;
-
-	for (size_t i = 0; i < patchPositions->size(); i++)
-	{
-		glm::mat4 mat = glm::translate(glm::mat4(1.0f), patchPositions->at(i));
-		patchTranslations.push_back(mat);
-	}
-
-	patchTransSSBO = std::make_shared<ge::gl::Buffer>(patchTranslations.size() * sizeof(glm::mat4), patchTranslations.data());
+	patchTransSSBO = grassField->getPatchTransSSBO();
 	grassShaderProgram->bindBuffer("patchTranslationBuffer", patchTransSSBO);
 
 	std::vector<float> dummyPos
@@ -213,8 +204,8 @@ void OpenGLWindow::initializeGL()
 	grassVAO->addAttrib(grassRandomsBuffer,		   3, 4, GL_FLOAT);
 
 	/* Terrain VAO setup */
-	terrainPositionBuffer = grassField->getTerrain()->getTerrainVertexBuffer();
-	terrainIndexBuffer    = grassField->getTerrain()->getTerrainIndexBuffer();
+	terrainPositionBuffer = terrain->getTerrainVertexBuffer();
+	terrainIndexBuffer    = terrain->getTerrainIndexBuffer();
 
 	terrainVAO = std::make_shared<ge::gl::VertexArray>();
 	terrainVAO->addElementBuffer(terrainIndexBuffer);
@@ -264,21 +255,6 @@ void OpenGLWindow::initializeGL()
 		SKYBOX_BACK
 	};
 	skyboxTexture = loadSkybox(faces);
-}
-
-void OpenGLWindow::setTessLevel(int tessLevel)
-{
-	this->tessLevel = tessLevel;
-	//DEBUG
-	std::cout << "Tessellation Level: " << tessLevel << std::endl;
-	update();
-}
-
-void OpenGLWindow::setRasterizationMode(GLenum mode)
-{
-	std::cout << "Rasterization mode changed: " << mode << std::endl;
-	rasterizationMode = mode;
-	update();
 }
 
 void OpenGLWindow::tick()
@@ -363,8 +339,9 @@ void OpenGLWindow::initGui()
 	{
 		Text("Grass");
 
-		SliderInt("Tessellation level", &tessLevel, 0, 10, "%d", NULL);
+		SliderInt("Max. tessellation level", &maxTessLevel, 0, 10, "%d", NULL);
 		SliderFloat("Max. bending factor", &maxBendingFactor, 0.0f, 5.0f, "%.1f");
+		SliderFloat("Max. distance", &maxDistance, 0.0f, 1000.0f, "%.f");
 		
 		{
 			static int radioValue = 2;
@@ -407,6 +384,32 @@ void OpenGLWindow::initGui()
 		Checkbox("Wind", &windEnabled);
 		Checkbox("Skybox", &skyboxEnabled);
 
+		Text("Camera");
+		SliderFloat("Camera speed", &cameraSpeed, 0.5f, 5.0f, "%.1f");
+
+		Separator();
+
+		Text("Regenerate");
+
+		{
+			static int bladeCount = 500;
+			static float fieldSize = 200.0f;
+			static float patchSize = 10.0f;
+			static float terrainSize = 200.0f;
+			static int rows = 100;
+			static int cols = 100;
+
+			SliderFloat("Field size", &fieldSize, 100.0f, 1000.0f, "%.f");
+			SliderFloat("Patch size", &patchSize, 1.0f, 100.0f, "%.f");
+			SliderInt("Blades per patch", &bladeCount, 0, 1000, "%d", NULL);
+			SliderFloat("Terrain size", &terrainSize, 100.0f, 1000.0f, "%.f");
+			SliderInt("Terrain rows", &rows, 1, 1000, "%d", NULL);
+			SliderInt("Terrain columns", &cols, 1, 1000, "%d", NULL);
+
+			if (Button("Regenerate"))
+				regenerateField(fieldSize, patchSize, bladeCount, terrainSize, rows, cols);
+		}
+
 	}
 
 	ImGui::End();
@@ -417,18 +420,18 @@ void OpenGLWindow::drawTerrain()
 	terrainShaderProgram->use();
 	terrainVAO->bind();
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-	terrainShaderProgram->set1f("uFieldSize", grassField->getFieldSize());
+	terrainShaderProgram->set1f("uFieldSize", terrain->getTerrainSize());
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, terrainRasterizationMode);
 	gl->glEnable(GL_PRIMITIVE_RESTART);
-	gl->glPrimitiveRestartIndex(grassField->getTerrain()->getRestartIndex());
+	gl->glPrimitiveRestartIndex(terrain->getRestartIndex());
 
 	// Textures
 	gl->glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 0
 	heightMap->bind();
 
 	// Draw
-	gl->glDrawElements(GL_TRIANGLE_STRIP, grassField->getTerrain()->getIndexCount(), GL_UNSIGNED_INT, 0);
+	gl->glDrawElements(GL_TRIANGLE_STRIP, terrain->getIndexCount(), GL_UNSIGNED_INT, 0);
 
 	gl->glDisable(GL_PRIMITIVE_RESTART);
 }
@@ -440,16 +443,22 @@ void OpenGLWindow::drawGrass()
 	GLint uWindEnabled	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uWindEnabled");
 	GLint uAlphaTexture = gl->glGetUniformLocation(grassShaderProgram->getId(), "uAlphaTexture");
 	GLint uHeightMap	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uHeightMap");
+	GLint uCameraPos	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uCameraPos");
+	GLint uMaxDistance	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uMaxDistance");
 
 	grassShaderProgram->use();
 	grassVAO->bind();
 
+	glm::vec3 cameraPos = camera->getPosition();
+
 	// Uniforms
 	grassShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-	grassShaderProgram->set1i("uTessLevel", tessLevel);
+	grassShaderProgram->set1i("uMaxTessLevel", maxTessLevel);
 	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
+	grassShaderProgram->set3fv("uCameraPos", glm::value_ptr(cameraPos));
 	gl->glUniform1f(uTime, time);
 	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
+	gl->glUniform1f(uMaxDistance, maxDistance);
 	gl->glUniform1i(uWindEnabled, windEnabled);
 	gl->glUniform1i(uAlphaTexture, 0);
 	gl->glUniform1i(uHeightMap, 1);
@@ -502,6 +511,49 @@ void OpenGLWindow::drawDummy()
 	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
+void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainSize, int rows, int cols)
+{
+	grassField.reset();
+	terrain.reset();
+	patchTransSSBO.reset();
+
+	grassPositionBuffer.reset();
+	grassCenterPositionBuffer.reset();
+	grassTexCoordBuffer.reset();
+	grassRandomsBuffer.reset();
+	grassVAO.reset();
+
+	terrainPositionBuffer.reset();
+	terrainIndexBuffer.reset();
+	terrainIndexBuffer.reset();
+	terrainVAO.reset();
+
+	grassField = std::make_shared<GrassField>(fieldSize, patchSize, grassBladeCount);
+	terrain = std::make_shared<Terrain>(terrainSize, rows, cols);
+
+	/* Grass VAO setup */
+	grassPositionBuffer = grassField->getGrassVertexBuffer();
+	grassCenterPositionBuffer = grassField->getGrassCenterBuffer();
+	grassTexCoordBuffer = grassField->getGrassTexCoordBuffer();
+	grassRandomsBuffer = grassField->getGrassRandomsBuffer();
+	patchTransSSBO = grassField->getPatchTransSSBO();
+	grassShaderProgram->bindBuffer("patchTranslationBuffer", patchTransSSBO);
+
+	grassVAO = std::make_shared<ge::gl::VertexArray>();
+	grassVAO->addAttrib(grassPositionBuffer, 0, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassCenterPositionBuffer, 1, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassTexCoordBuffer, 2, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassRandomsBuffer, 3, 4, GL_FLOAT);
+
+	/* Terrain VAO setup */
+	terrainPositionBuffer = terrain->getTerrainVertexBuffer();
+	terrainIndexBuffer = terrain->getTerrainIndexBuffer();
+
+	terrainVAO = std::make_shared<ge::gl::VertexArray>();
+	terrainVAO->addElementBuffer(terrainIndexBuffer);
+	terrainVAO->addAttrib(terrainPositionBuffer, 0, 2, GL_FLOAT);
+}
+
 void OpenGLWindow::wheelEvent(QWheelEvent *event)
 {
 	float angle = event->angleDelta().y();
@@ -534,7 +586,6 @@ void OpenGLWindow::mouseMoveEvent(QMouseEvent *event)
 
 void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 {
-	float cameraSpeed = 1.0f;
 	if (event->key() == Qt::Key_W)
 		camera->moveCamera(Camera::Direction::FORWARDS, cameraSpeed);
 	if (event->key() == Qt::Key_S)

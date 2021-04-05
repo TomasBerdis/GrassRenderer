@@ -10,7 +10,6 @@ find_package(Qt5 COMPONENTS REQUIRED Gui Widgets)
 set(sources
     src/main.cpp
     src/OpenGLWindow.cpp src/OpenGLWindow.hpp
-    src/SettingsWidget.cpp src/SettingsWidget.hpp
     src/Camera.cpp src/Camera.hpp
     src/GrassField.cpp src/GrassField.hpp
     src/Terrain.cpp src/Terrain.hpp

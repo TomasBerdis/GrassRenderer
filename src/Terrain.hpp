@@ -10,11 +10,12 @@
 class Terrain
 {
 public:
-    Terrain(float width, float height, int rows, int cols);
+    Terrain(float terrainSize, int rows, int cols);
     ~Terrain();
 
     int getIndexCount();
     int getRestartIndex();
+    float getTerrainSize();
 
     std::shared_ptr<ge::gl::Buffer> getTerrainVertexBuffer();
     std::shared_ptr<ge::gl::Buffer> getTerrainIndexBuffer();
@@ -23,8 +24,7 @@ protected:
     void generateTerrain();
 
 private:
-    float width;
-    float height;
+    float terrainSize;
     int rows;
     int cols;
     int indexCount;

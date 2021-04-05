@@ -3,8 +3,6 @@
 GrassField::GrassField(float fieldSize, float patchSize, int grassBladeCount)
 	: fieldSize{ fieldSize }, patchSize{ patchSize }, grassBladeCount{ grassBladeCount }
 {
-	terrain = std::make_shared<Terrain>(fieldSize, fieldSize, 100, 100);
-
 	worldCenterPos = { 0.0f, 0.0f, 0.0f };
 	patchCount = pow(fieldSize / patchSize, 2);
 	generatePatchPositions();
@@ -35,11 +33,6 @@ int GrassField::getPatchCount()
 	return patchCount;
 }
 
-std::shared_ptr<Terrain> GrassField::getTerrain()
-{
-	return terrain;
-}
-
 std::vector<glm::vec3> *GrassField::getPatchPositions()
 {
 	return patchPositions;
@@ -63,6 +56,23 @@ std::vector<glm::vec4> *GrassField::getGrassTextureCoords()
 std::vector<glm::vec4> *GrassField::getGrassRandoms()
 {
 	return grassRandoms;
+}
+
+std::shared_ptr<ge::gl::Buffer> GrassField::getPatchTransSSBO()
+{
+	std::shared_ptr<ge::gl::Buffer> patchTransSSBO;
+
+	std::vector<glm::vec3> *patchPositions = getPatchPositions();
+	std::vector<glm::mat4> patchTranslations;
+
+	for (size_t i = 0; i < patchPositions->size(); i++)
+	{
+		glm::mat4 mat = glm::translate(glm::mat4(1.0f), patchPositions->at(i));
+		patchTranslations.push_back(mat);
+	}
+
+	patchTransSSBO = std::make_shared<ge::gl::Buffer>(patchTranslations.size() * sizeof(glm::mat4), patchTranslations.data());
+	return patchTransSSBO;
 }
 
 std::shared_ptr<ge::gl::Buffer> GrassField::getGrassVertexBuffer()
@@ -95,6 +105,24 @@ std::shared_ptr<ge::gl::Buffer> GrassField::getGrassRandomsBuffer()
 	grassRandomsBuffer = std::make_shared<ge::gl::Buffer>(grassRandoms->size() * sizeof(float) * 4, grassRandoms->data());
 
 	return grassRandomsBuffer;
+}
+
+std::shared_ptr<ge::gl::VertexArray> GrassField::getGrassVAO()
+{
+	std::shared_ptr<ge::gl::VertexArray> grassVAO;
+	grassVAO = std::make_shared<ge::gl::VertexArray>();
+
+	std::shared_ptr<ge::gl::Buffer> grassPositionBuffer = getGrassVertexBuffer();
+	std::shared_ptr<ge::gl::Buffer> grassCenterPositionBuffer = getGrassCenterBuffer();
+	std::shared_ptr<ge::gl::Buffer> grassTexCoordBuffer = getGrassTexCoordBuffer();
+	std::shared_ptr<ge::gl::Buffer> grassRandomsBuffer = getGrassRandomsBuffer();
+
+	grassVAO->addAttrib(grassPositionBuffer, 0, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassCenterPositionBuffer, 1, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassTexCoordBuffer, 2, 4, GL_FLOAT);
+	grassVAO->addAttrib(grassRandomsBuffer, 3, 4, GL_FLOAT);
+
+	return grassVAO;
 }
 
 void GrassField::generatePatchPositions()
