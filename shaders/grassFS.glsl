@@ -1,9 +1,12 @@
 #version 450 core
 
 uniform sampler2D uAlphaTexture;
+uniform vec3 uCameraPos;
 
+in vec4 teCenterPosition;
 in vec4 teTexCoord;
 in vec4 teRandoms;
+in vec3 teNormal;
 out vec4 color;
 
 void main()

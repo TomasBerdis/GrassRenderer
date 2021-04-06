@@ -12,6 +12,7 @@ out vec4 tePosition;
 out vec4 teCenterPosition;
 out vec4 teTexCoord;
 out vec4 teRandoms;
+out vec3 teNormal;
 
 uniform mat4 uMVP;
 
@@ -50,10 +51,14 @@ void main()
 	SplineData rightSpline = calcSplinePos(tcPosition[1].xyz, controlPoints[1], tcPosition[2].xyz, v);
     
 	vec3 splinePos = leftSpline.pos * (1.0f - u) + rightSpline.pos * u;
+	vec3 bitangent = (rightSpline.pos - leftSpline.pos) / length(rightSpline.pos - leftSpline.pos * leftSpline.a);
+	vec3 tangent   = (leftSpline.tangent * (1.0 - u) + rightSpline.tangent * u) / length(leftSpline.tangent * (1.0 - u) + rightSpline.tangent * u);
+	vec3 normal    = cross(tangent, bitangent) / length(cross(tangent, bitangent));
 
     gl_Position = uMVP * vec4(splinePos, 1.0f);
 
     tePosition 		 = gl_Position;
     teCenterPosition = tcCenterPosition[0];
+	teNormal 		 = normal;
     teRandoms		 = tcRandoms[0];
 }

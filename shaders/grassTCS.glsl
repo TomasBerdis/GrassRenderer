@@ -37,6 +37,11 @@ void main()
 
     float tessellationLevel = ceil(uMaxTessLevel * (1 - (cameraDistance / uMaxDistance)));
 
+    /* Randomly discard blades based on distance */
+    float r = vCenterPosition[0].w + (cameraDistance / uMaxDistance);
+    if (r > 1)
+        tessellationLevel = 0;
+
     if (gl_InvocationID == 0)
     {
         // if any of the outer levels is zero, the patch is culled

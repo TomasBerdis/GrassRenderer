@@ -84,6 +84,8 @@ void main()
    float newY = position.y + mix(0.0, 30.0, 1 - heightSample.b) ;
 
    gl_Position     = vec4(newX, newY, newZ, 1.0f);
+   
+   vCenterPosition.y = newY;  // update center's y coordinate with actual height
 
    vPosition       = patchTranslations[gl_InstanceID] * gl_Position;
    vCenterPosition = centerPosition;
