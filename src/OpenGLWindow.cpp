@@ -259,6 +259,8 @@ void OpenGLWindow::initializeGL()
 
 void OpenGLWindow::tick()
 {
+	/* Update wind speed */
+	windParams.z = glm::cos(time / 200) / 2 + 0.5;	// 0 - 1
 	update();
 }
 
@@ -382,16 +384,22 @@ void OpenGLWindow::initGui()
 		Text("Scene");
 
 		Checkbox("Wind", &windEnabled);
-		Checkbox("Lighting", &lightingEnabled);
+		SliderFloat2("Wind parameters", glm::value_ptr(windParams), 0.0f, 5.0f, "%.1f");
+		SliderFloat("Wind speed", &windParams.z, 0.0f, 1.0f, "%.1f");
+
 		Checkbox("Skybox", &skyboxEnabled);
 
 		Text("Camera");
 		SliderFloat("Camera speed", &cameraSpeed, 0.5f, 5.0f, "%.1f");
 
 		Text("Light");
+		Checkbox("Lighting", &lightingEnabled);
 		SliderFloat("Light X", &lightPosition.x, -500.0f, 500.0f, "%.f");
-		SliderFloat("Light Y", &lightPosition.y,    0.0f, 500.0f, "%.f");
+		SliderFloat("Light Y", &lightPosition.y, -500.0f, 500.0f, "%.f");
 		SliderFloat("Light Z", &lightPosition.z, -500.0f, 500.0f, "%.f");
+		SliderFloat("Light R", &lightColor.r, 0.0f, 1.0f, "%.01f");
+		SliderFloat("Light G", &lightColor.g, 0.0f, 1.0f, "%.01f");
+		SliderFloat("Light B", &lightColor.b, 0.0f, 1.0f, "%.01f");
 
 		Separator();
 
@@ -464,6 +472,8 @@ void OpenGLWindow::drawGrass()
 	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
 	grassShaderProgram->set3fv("uCameraPos", glm::value_ptr(cameraPos));
 	grassShaderProgram->set3fv("uLightPos", glm::value_ptr(lightPosition));
+	grassShaderProgram->set3fv("uLightColor", glm::value_ptr(lightColor));
+	grassShaderProgram->set3fv("uWindParams", glm::value_ptr(windParams));
 	gl->glUniform1f(uTime, time);
 	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
 	gl->glUniform1f(uMaxDistance, maxDistance);

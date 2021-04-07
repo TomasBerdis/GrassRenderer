@@ -71,12 +71,14 @@ private:
 	int windowHeight;
 
 	bool windEnabled = true;
-	bool lightingEnabled = true;
+	bool lightingEnabled = false;
 	bool skyboxEnabled = true;
 	bool guiEnabled = true;
 
 	glm::mat4 mvp;
 	glm::vec3 lightPosition { 100.0, 500.0, 100.0 };
+	glm::vec3 lightColor{ 0.086, 0.837, 0.388 };
+	glm::vec3 windParams{ 2.0, 2.0, 0.0 };
 
 	Camera *camera;
 	std::shared_ptr<GrassField> grassField;

@@ -1,8 +1,10 @@
 #version 450 core
 
 uniform sampler2D uAlphaTexture;
-uniform vec3 uLightPos;
 uniform int uLightingEnabled;
+uniform vec3 uLightPos;
+uniform vec3 uLightColor;
+uniform vec3 uCameraPos;
 
 in vec3 tePosition;
 in vec4 teTexCoord;
@@ -31,13 +33,12 @@ void main()
             vec3 norm = normalize(teNormal);
             vec3 lightDir = normalize(uLightPos - tePosition);
 
-            float ambientStrength = 0.8;
-            vec3 ambient = ambientStrength * vec3(1.0, 1.0, 0.0);
+            vec3 ambient = vec3(0.086, 0.837, 0.388) * 0.6;
 
             float diff = max(dot(norm, lightDir), 0.0);
-            vec3 diffuse = diff * vec3(0.2, 0.2, 0.0);
+            vec3 diffuse = diff * uLightColor;
 
-            vec3 result = (ambient + diffuse) * color.rgb;
+            vec3 result = (ambient + diffuse);
             color = vec4(result, 1.0);
         }
     }

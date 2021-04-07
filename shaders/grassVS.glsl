@@ -18,6 +18,7 @@ uniform float uMaxBendingFactor;
 uniform float uTime;
 uniform float uFieldSize;
 uniform int uWindEnabled;
+uniform vec3 uWindParams;
 
 layout(std430, binding=0) buffer patchTranslationBuffer
 {
@@ -27,10 +28,11 @@ layout(std430, binding=0) buffer patchTranslationBuffer
 /* Wind function */
 float w(vec3 p)
 {
-   int c1 = 1;
-   int c2 = 5;
-   int c3 = 1;
-   float a = M_PI * p.x + uTime/100 + (M_PI / 4) / (abs(cos(c2 * M_PI * p.z)) + 0.00001);
+   float c1 = uWindParams.x;
+   float c2 = 2.0;
+   float c3 = uWindParams.y;
+   float timeScale = (1 - uWindParams.z) * 50 + 150;  // z = 0 -> slow, z = 1 -> fast
+   float a = M_PI * p.x + uTime/timeScale + (M_PI / 4) / (abs(cos(c2 * M_PI * p.z)) + 0.00001);
    return sin(c1 * a) * cos(c3 * a);
 }
 
@@ -97,8 +99,8 @@ void main()
    if ((centerPosition.y > 0.99f) && (uWindEnabled == 1)) // upper vertices
    {
       /* Inspired by Horizon Zero Dawn GDC presentation */
-      // newX = newX + (2 * sin (1 * (worldPos.x + worldPos.y + worldPos.z + uTime/150))) + 1;
-      // newZ = newZ + (1 * sin (2 * (worldPos.x + worldPos.y + worldPos.z + uTime/150))) + 0.5;
+      newX = newX + (2 * sin (0.05 * (worldPos.x + worldPos.y + worldPos.z + uTime/10))) + 1;
+      newZ = newZ + (1 * sin (0.05 * (worldPos.x + worldPos.y + worldPos.z + uTime/50))) + 0.5;
       newX = newX + w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
       newZ = newZ + w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
    }
