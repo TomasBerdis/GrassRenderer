@@ -277,7 +277,7 @@ void OpenGLWindow::paintGL()
 	time = timer.elapsed() / 10;
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
-	gl->glClearColor(0.25, 0.3, 0.3, 1.0);
+	gl->glClearColor(0.45, 0.5, 0.5, 1.0);
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	/* INITIALIZE GUI */
@@ -382,6 +382,7 @@ void OpenGLWindow::initGui()
 		Text("Scene");
 
 		Checkbox("Wind", &windEnabled);
+		Checkbox("Lighting", &lightingEnabled);
 		Checkbox("Skybox", &skyboxEnabled);
 
 		Text("Camera");
@@ -446,6 +447,7 @@ void OpenGLWindow::drawGrass()
 	GLint uTime			= gl->glGetUniformLocation(grassShaderProgram->getId(), "uTime");
 	GLint uFieldSize	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uFieldSize");
 	GLint uWindEnabled	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uWindEnabled");
+	GLint uLightingEnabled = gl->glGetUniformLocation(grassShaderProgram->getId(), "uLightingEnabled");
 	GLint uAlphaTexture = gl->glGetUniformLocation(grassShaderProgram->getId(), "uAlphaTexture");
 	GLint uHeightMap	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uHeightMap");
 	GLint uCameraPos	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uCameraPos");
@@ -466,6 +468,7 @@ void OpenGLWindow::drawGrass()
 	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
 	gl->glUniform1f(uMaxDistance, maxDistance);
 	gl->glUniform1i(uWindEnabled, windEnabled);
+	gl->glUniform1i(uLightingEnabled, lightingEnabled);
 	gl->glUniform1i(uAlphaTexture, 0);
 	gl->glUniform1i(uHeightMap, 1);
 

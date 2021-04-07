@@ -23,6 +23,8 @@ public:
 protected:
     void generateTerrain();
 
+    int rowColToIndex(int row, int col);
+
 private:
     float terrainSize;
     int rows;

@@ -54,8 +54,8 @@ void Terrain::generateTerrain()
         {
             float normalizedHeight = (float)row / (rows - 1);
             float normalizedWidth  = (float)col / (cols - 1);
-            float xOffset = glm::mix( -terrainSize / 2, terrainSize / 2, normalizedWidth);
-            float zOffset = glm::mix(terrainSize / 2, -terrainSize / 2, normalizedHeight);
+            float xOffset = glm::mix(-terrainSize / 2,  terrainSize / 2, normalizedWidth);
+            float zOffset = glm::mix( terrainSize / 2, -terrainSize / 2, normalizedHeight);
             terrainVertices->push_back(glm::vec2(xOffset, zOffset));
         }
     }
@@ -77,4 +77,13 @@ void Terrain::generateTerrain()
         // Restart triangle strips
         terrainIndices->push_back(restartIndex);
     }
+
+    /* Generate normals */
+    glm::vec2 v = terrainVertices->at(rowColToIndex(0,0)); // row col
+    v.length;
+}
+
+int Terrain::rowColToIndex(int row, int col)
+{
+    return row * cols + col;
 }

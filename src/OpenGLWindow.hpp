@@ -71,6 +71,7 @@ private:
 	int windowHeight;
 
 	bool windEnabled = true;
+	bool lightingEnabled = true;
 	bool skyboxEnabled = true;
 	bool guiEnabled = true;
 

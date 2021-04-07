@@ -147,8 +147,8 @@ void GrassField::generateRandoms()
 {
 	/* Rendering pipeline random values */
 	randoms[0] = glm::linearRand(0.00f, 360.0f);	// angle
-	randoms[1] = glm::linearRand(0.00f, 1.00f);		// x offset
-	randoms[2] = glm::linearRand(0.00f, 1.00f);		// z offset
+	randoms[1] = glm::linearRand(-1.00f, 1.00f);	// x offset
+	randoms[2] = glm::linearRand(-1.00f, 1.00f);	// z offset
 	randoms[3] = glm::linearRand(-0.25f, 0.25f);	// TCS
 	randoms[4] = glm::linearRand(0.75f, 1.25f);		// TCS
 	randoms[5] = glm::linearRand(0.00f, 0.05f);		// R
