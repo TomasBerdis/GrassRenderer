@@ -8,7 +8,7 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -250.0f);	// reset rotation
 
 	/* Create grass field */
-	grassField = std::make_shared<GrassField>(200.0f, 10.0f, 500);
+	grassField = std::make_shared<GrassField>(200.0f, 10.0f, 700);
 	terrain = std::make_shared<Terrain>(200.0f, 100, 100);
 
 }
@@ -387,12 +387,17 @@ void OpenGLWindow::initGui()
 		Text("Camera");
 		SliderFloat("Camera speed", &cameraSpeed, 0.5f, 5.0f, "%.1f");
 
+		Text("Light");
+		SliderFloat("Light X", &lightPosition.x, -500.0f, 500.0f, "%.f");
+		SliderFloat("Light Y", &lightPosition.y,    0.0f, 500.0f, "%.f");
+		SliderFloat("Light Z", &lightPosition.z, -500.0f, 500.0f, "%.f");
+
 		Separator();
 
 		Text("Regenerate");
 
 		{
-			static int bladeCount = 500;
+			static int bladeCount = 700;
 			static float fieldSize = 200.0f;
 			static float patchSize = 10.0f;
 			static float terrainSize = 200.0f;
@@ -456,6 +461,7 @@ void OpenGLWindow::drawGrass()
 	grassShaderProgram->set1i("uMaxTessLevel", maxTessLevel);
 	grassShaderProgram->set1f("uMaxBendingFactor", maxBendingFactor);
 	grassShaderProgram->set3fv("uCameraPos", glm::value_ptr(cameraPos));
+	grassShaderProgram->set3fv("uLightPos", glm::value_ptr(lightPosition));
 	gl->glUniform1f(uTime, time);
 	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
 	gl->glUniform1f(uMaxDistance, maxDistance);

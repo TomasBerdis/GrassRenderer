@@ -11,6 +11,7 @@ out vec4 vPosition;
 out vec4 vCenterPosition;
 out vec4 vTexCoord;
 out vec4 vRandoms;
+out int vDiscardBlade;
 
 uniform sampler2D uHeightMap;
 uniform float uMaxBendingFactor;
@@ -29,12 +30,14 @@ float w(vec3 p)
    int c1 = 1;
    int c2 = 1;
    int c3 = 1;
-   float a = M_PI * p.x + uTime/150 + (M_PI / 4) / (abs(cos(c2 * M_PI * p.z)) + 0.00001);
+   float a = M_PI * p.x + uTime/100 + (M_PI / 4) / (abs(cos(c2 * M_PI * p.z)) + 0.00001);
    return sin(c1 * a) * cos(c3 * a);
 }
 
 void main()
 {
+   vDiscardBlade = 0;
+   
    /* Calculate world space position */
    float patchX = patchTranslations[gl_InstanceID][3][0];
    float patchY = patchTranslations[gl_InstanceID][3][1];
@@ -57,6 +60,11 @@ void main()
    vCenterPosition.w = centerPosition.w * sin(c * worldPos.x);
    vTexCoord.zw      = texCoord.zw      * sin(c * worldPos.x);
    vRandoms          = randoms          * sin(c * worldPos.x);
+
+    /* Discard blades based on density */
+    float d = centerPosition.w + (1 - heightSample.r);
+    if (d > 1)
+        vDiscardBlade = 1;
 
    float angle = 2 * M_PI * r0;
    float xDelta = position.x - centerPosition.x;

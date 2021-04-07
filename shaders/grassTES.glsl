@@ -8,7 +8,7 @@ in vec4 tcTexCoord[];
 in vec4 tcRandoms[];
 patch in vec3 controlPoints[2];
 
-out vec4 tePosition;
+out vec3 tePosition;
 out vec4 teCenterPosition;
 out vec4 teTexCoord;
 out vec4 teRandoms;
@@ -57,7 +57,7 @@ void main()
 
     gl_Position = uMVP * vec4(splinePos, 1.0f);
 
-    tePosition 		 = gl_Position;
+    tePosition 		 = splinePos;			// world space position for light calculations
     teCenterPosition = tcCenterPosition[0];
 	teNormal 		 = normal;
     teRandoms		 = tcRandoms[0];

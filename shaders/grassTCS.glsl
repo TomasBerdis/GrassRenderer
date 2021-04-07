@@ -7,6 +7,7 @@ in vec4 vPosition[];
 in vec4 vCenterPosition[];
 in vec4 vTexCoord[];
 in vec4 vRandoms[];
+in int vDiscardBlade[];
 
 out vec4 tcPosition[];
 out vec4 tcCenterPosition[];
@@ -40,6 +41,10 @@ void main()
     /* Randomly discard blades based on distance */
     float r = vCenterPosition[0].w + (cameraDistance / uMaxDistance);
     if (r > 1)
+        tessellationLevel = 0;
+
+    /* Density */
+    if (vDiscardBlade[0] == 1)
         tessellationLevel = 0;
 
     if (gl_InvocationID == 0)

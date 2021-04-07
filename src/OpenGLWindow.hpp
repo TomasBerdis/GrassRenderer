@@ -63,7 +63,7 @@ protected:
 private:
 	bool initialized;
 	int maxTessLevel = 5;
-	float maxBendingFactor = 1.5f;
+	float maxBendingFactor = 0.5f;
 	float maxDistance = 500.0f;
 	float time;
 	float cameraSpeed = 1.0f;
@@ -75,6 +75,7 @@ private:
 	bool guiEnabled = true;
 
 	glm::mat4 mvp;
+	glm::vec3 lightPosition { 100.0, 500.0, 100.0 };
 
 	Camera *camera;
 	std::shared_ptr<GrassField> grassField;
