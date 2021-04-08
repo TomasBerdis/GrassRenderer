@@ -57,6 +57,7 @@ protected:
 	void mousePressEvent(QMouseEvent* event);
 	void mouseMoveEvent(QMouseEvent* event);
 	void keyPressEvent(QKeyEvent* event);
+	void keyReleaseEvent(QKeyEvent *event);
 
 	unsigned int loadSkybox(std::vector<QString> faces);
 
@@ -67,7 +68,7 @@ private:
 	float maxDistance = 500.0f;
 	float maxTerrainHeight = 30.0f;
 	int time;
-	float cameraSpeed = 1.0f;
+	float cameraSpeed = 2.0f;
 	int windowWidth;
 	int windowHeight;
 
@@ -75,6 +76,7 @@ private:
 	bool lightingEnabled = false;
 	bool skyboxEnabled = true;
 	bool guiEnabled = true;
+	bool controlPressed = false;
 
 	glm::mat4 mvp;
 	glm::vec3 lightPosition { 100.0, 500.0, 100.0 };

@@ -264,7 +264,7 @@ void OpenGLWindow::tick()
 	const float pi = glm::pi<float>();
 	windParams.z = glm::cos(time * pi / 10000) / 2 + 0.5;	// 0 - 1	// period 10s
 
-	std::cout << "Time: " << time << "Wind param: " << windParams.z << std::endl;
+	//std::cout << "Time: " << time << "Wind param: " << windParams.z << std::endl;
 	update();
 }
 
@@ -591,11 +591,14 @@ void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBl
 
 void OpenGLWindow::wheelEvent(QWheelEvent *event)
 {
-	float angle = event->angleDelta().y();
-	if (angle > 0)
-		camera->decreaseFov(10);
-	else
-		camera->increaseFov(10);
+	if (controlPressed)
+	{
+		float angle = event->angleDelta().y();
+		if (angle > 0)
+			camera->decreaseFov(10);
+		else
+			camera->increaseFov(10);
+	}
 
 	update();
 }
@@ -631,7 +634,7 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 		camera->moveCamera(Camera::Direction::RIGHT, cameraSpeed);
 	if (event->key() == Qt::Key_Space)
 		camera->moveCamera(Camera::Direction::UP, cameraSpeed);
-	if (event->key() == Qt::Key_Control)
+	if (event->key() == Qt::Key_X)
 		camera->moveCamera(Camera::Direction::DOWN, cameraSpeed);
 	if (event->key() == Qt::Key_Escape)
 	{
@@ -647,6 +650,16 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 		else
 			windEnabled = true;
 	}
+	if (event->key() == Qt::Key_Control)
+		controlPressed = true;
+
+	update();
+}
+
+void OpenGLWindow::keyReleaseEvent(QKeyEvent *event)
+{
+	if (event->key() == Qt::Key_Control)
+		controlPressed = false;
 
 	update();
 }
