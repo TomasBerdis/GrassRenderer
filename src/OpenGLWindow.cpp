@@ -8,7 +8,8 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -250.0f);	// reset rotation
 
 	/* Create grass field */
-	grassField = std::make_shared<GrassField>(200.0f, 8.0f, 700);
+	GrassField::BladeDimensions bladeDimensions{0.1, 0.5, 1.0, 4.0};
+	grassField = std::make_shared<GrassField>(200.0f, 8.0f, 700, bladeDimensions);
 	terrain = std::make_shared<Terrain>(200.0f, 100, 100);
 
 }
@@ -381,6 +382,7 @@ void OpenGLWindow::initGui()
 			else if (radioValue == 2)
 				terrainRasterizationMode = GL_FILL;
 		}
+		SliderFloat("Max. terrain height", &maxTerrainHeight, 0.0f, 100.0f, "%.f");
 
 		Separator();
 
@@ -415,16 +417,22 @@ void OpenGLWindow::initGui()
 			static float terrainSize = 200.0f;
 			static int rows = 100;
 			static int cols = 100;
+			static GrassField::BladeDimensions bladeDimensions{ 0.1, 0.5, 1.0, 4.0 };
 
 			SliderFloat("Field size", &fieldSize, 100.0f, 1000.0f, "%.f");
 			SliderFloat("Patch size", &patchSize, 1.0f, 100.0f, "%.f");
 			SliderInt("Blades per patch", &bladeCount, 0, 1000, "%d", NULL);
+			Text("Blade dimensions");
+			SliderFloat("Minimum width", &bladeDimensions.wMin, 0.0f, 10.0f, "%.1f");
+			SliderFloat("Maximum width", &bladeDimensions.wMax, 0.0f, 10.0f, "%.1f");
+			SliderFloat("Minimum height", &bladeDimensions.hMin, 0.0f, 10.0f, "%.1f");
+			SliderFloat("Maximum height", &bladeDimensions.hMax, 0.0f, 10.0f, "%.1f");
 			SliderFloat("Terrain size", &terrainSize, 100.0f, 1000.0f, "%.f");
 			SliderInt("Terrain rows", &rows, 1, 1000, "%d", NULL);
 			SliderInt("Terrain columns", &cols, 1, 1000, "%d", NULL);
 
 			if (Button("Regenerate"))
-				regenerateField(fieldSize, patchSize, bladeCount, terrainSize, rows, cols);
+				regenerateField(fieldSize, patchSize, bladeCount, terrainSize, rows, cols, bladeDimensions);
 		}
 
 	}
@@ -434,10 +442,13 @@ void OpenGLWindow::initGui()
 
 void OpenGLWindow::drawTerrain()
 {
+	GLint uMaxTerrainHeight = gl->glGetUniformLocation(terrainShaderProgram->getId(), "uMaxTerrainHeight");
+
 	terrainShaderProgram->use();
 	terrainVAO->bind();
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
 	terrainShaderProgram->set1f("uFieldSize", terrain->getTerrainSize());
+	gl->glUniform1f(uMaxTerrainHeight, maxTerrainHeight);
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, terrainRasterizationMode);
 	gl->glEnable(GL_PRIMITIVE_RESTART);
@@ -463,7 +474,8 @@ void OpenGLWindow::drawGrass()
 	GLint uHeightMap	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uHeightMap");
 	GLint uCameraPos	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uCameraPos");
 	GLint uMaxDistance	= gl->glGetUniformLocation(grassShaderProgram->getId(), "uMaxDistance");
-
+	GLint uMaxTerrainHeight = gl->glGetUniformLocation(grassShaderProgram->getId(), "uMaxTerrainHeight");
+	
 	grassShaderProgram->use();
 	grassVAO->bind();
 
@@ -480,6 +492,7 @@ void OpenGLWindow::drawGrass()
 	gl->glUniform1i(uTime, time);
 	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
 	gl->glUniform1f(uMaxDistance, maxDistance);
+	gl->glUniform1f(uMaxTerrainHeight, maxTerrainHeight);
 	gl->glUniform1i(uWindEnabled, windEnabled);
 	gl->glUniform1i(uLightingEnabled, lightingEnabled);
 	gl->glUniform1i(uAlphaTexture, 0);
@@ -533,7 +546,7 @@ void OpenGLWindow::drawDummy()
 	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainSize, int rows, int cols)
+void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainSize, int rows, int cols, GrassField::BladeDimensions bladeDimensions)
 {
 	grassField.reset();
 	terrain.reset();
@@ -550,7 +563,7 @@ void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBl
 	terrainIndexBuffer.reset();
 	terrainVAO.reset();
 
-	grassField = std::make_shared<GrassField>(fieldSize, patchSize, grassBladeCount);
+	grassField = std::make_shared<GrassField>(fieldSize, patchSize, grassBladeCount, bladeDimensions);
 	terrain = std::make_shared<Terrain>(terrainSize, rows, cols);
 
 	/* Grass VAO setup */

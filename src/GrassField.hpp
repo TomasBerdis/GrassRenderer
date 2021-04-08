@@ -17,7 +17,15 @@
 class GrassField
 {
 public:
-    GrassField(float fieldSize, float patchSize, int grassBladeCount);
+    struct BladeDimensions
+    {
+        float wMin;
+        float wMax;
+        float hMin;
+        float hMax;
+    };
+
+    GrassField(float fieldSize, float patchSize, int grassBladeCount, BladeDimensions bladeDimensions);
     ~GrassField();
 
     int getFieldSize();
@@ -41,7 +49,7 @@ public:
 protected:
     void generatePatchPositions();
     void generateRandoms();
-    void generateGrassGeometry();
+    void generateGrassGeometry(BladeDimensions bladeDimensions);
 
 private:
     float fieldSize;

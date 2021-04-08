@@ -15,6 +15,7 @@ out int vDiscardBlade;
 
 uniform sampler2D uHeightMap;
 uniform float uMaxBendingFactor;
+uniform float uMaxTerrainHeight;
 uniform int uTime;
 uniform float uFieldSize;
 uniform int uWindEnabled;
@@ -57,7 +58,7 @@ void main()
    float c = (worldPos.x + worldPos.z + uFieldSize) / uFieldSize * 2;
    float r0 = mix(0.0, 360.0, sin(c + position.w + gl_InstanceID/64)/2 + 0.5);
    float r1 = centerPosition.w; // -1.0 ... 1.0
-   float r2 = mix(0.0, 2.0, sin(c + texCoord.z)/2 + 0.5) -1.0;       // -1.0 ... 1.0
+   float r2 = mix(0.0, 2.0, sin(c + texCoord.z + gl_InstanceID/64)/2 + 0.5) -1.0;       // -1.0 ... 1.0
    // vPosition.w       = r0;
    // vCenterPosition.w = r1;
    vTexCoord       = texCoord;
@@ -81,7 +82,7 @@ void main()
 	float newZ = centerPosition.z + sin(angle) * (xDelta) + cos(angle) * (zDelta);   // z rotated around center
    
    /* New height sampled from height map */
-   float newY = position.y + mix(0.0, 30.0, 1 - heightSample.b) ;
+   float newY = position.y + mix(0.0, uMaxTerrainHeight, 1 - heightSample.b) ;
 
    if (centerPosition.y > 0.99f) // upper vertices
    {   
@@ -100,23 +101,26 @@ void main()
    else
       vDiscardBlade = 1;
 
+   /* Move blade randomly */
+   // newX = newX + r1;
+   // newZ = newZ + r2;
+
    /* Wind calculation */
    if ((centerPosition.y > 0.99f) && (uWindEnabled == 1)) // upper vertices
    {
       /* Inspired by Horizon Zero Dawn GDC presentation */
-      newX = newX + (1 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/30))) + 1;
+      newX = newX + (1.0 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/30 ))) + 1.0;
       newZ = newZ + (0.5 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/100))) + 0.5;
       newX = newX + w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
       newZ = newZ + w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
    }
 
    gl_Position     = vec4(newX, newY, newZ, 1.0f);
-   
 
-   vPosition       = patchTranslations[gl_InstanceID] * gl_Position;
+   vPosition          = patchTranslations[gl_InstanceID] * gl_Position; // move the patch
    vCenterPosition.xz = centerPosition.xz;
-   vCenterPosition.y = newY;  // update center's y coordinate with actual height
-   vCenterPosition.w = centerPosition.w;
+   vCenterPosition.y  = newY;  // update center's y coordinate with actual height
+   vCenterPosition.w  = centerPosition.w;
    // vTexCoord       = texCoord;
    // vRandoms = randoms;
 }

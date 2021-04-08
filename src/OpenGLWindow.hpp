@@ -50,7 +50,7 @@ protected:
 	void drawSkybox();
 	void drawDummy();
 
-	void regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainSize, int rows, int cols);
+	void regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainSize, int rows, int cols, GrassField::BladeDimensions bladeDimensions);
 
 	/* Event handlers */
 	void wheelEvent(QWheelEvent* event);
@@ -65,6 +65,7 @@ private:
 	int maxTessLevel = 5;
 	float maxBendingFactor = 0.3f;
 	float maxDistance = 500.0f;
+	float maxTerrainHeight = 30.0f;
 	int time;
 	float cameraSpeed = 1.0f;
 	int windowWidth;

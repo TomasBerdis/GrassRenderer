@@ -1,12 +1,12 @@
 #include "GrassField.hpp"
 
-GrassField::GrassField(float fieldSize, float patchSize, int grassBladeCount)
+GrassField::GrassField(float fieldSize, float patchSize, int grassBladeCount, BladeDimensions bladeDimensions)
 	: fieldSize{ fieldSize }, patchSize{ patchSize }, grassBladeCount{ grassBladeCount }
 {
 	worldCenterPos = { 0.0f, 0.0f, 0.0f };
 	patchCount = pow(fieldSize / patchSize, 2);
 	generatePatchPositions();
-	generateGrassGeometry();
+	generateGrassGeometry(bladeDimensions);
 }
 
 GrassField::~GrassField()
@@ -161,7 +161,7 @@ void GrassField::generateRandoms()
 	randoms[10] = glm::linearRand(-patchSize / 2, patchSize / 2);	// z offset
 }
 
-void GrassField::generateGrassGeometry()
+void GrassField::generateGrassGeometry(BladeDimensions bladeDimensions)
 {
 	grassVertexPositions = new std::vector<glm::vec4>();
 	grassCenterPositions = new std::vector<glm::vec4>();
@@ -173,15 +173,8 @@ void GrassField::generateGrassGeometry()
 	{
 		generateRandoms();
 
-		/* Patch values */
-		float wMin	  = 0.1f;
-		float wMax	  = 0.5f;
-		float hMin	  = 1.0f;
-		float hMax	  = 4.0f;
-		float density = 1.0f;
-
-		float w =  wMin + randoms[8] * (wMax - wMin);
-		float h = (hMin + randoms[8] * (hMax - hMin)) * density;
+		float w =  bladeDimensions.wMin + randoms[8] * (bladeDimensions.wMax - bladeDimensions.wMin);
+		float h = (bladeDimensions.hMin + randoms[8] * (bladeDimensions.hMax - bladeDimensions.hMin));
 
 		glm::vec4 pc{ 0.0f, 0.0f, 0.0f, 1.0f };	// bottom center
 
