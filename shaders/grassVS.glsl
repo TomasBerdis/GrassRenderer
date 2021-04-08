@@ -55,17 +55,18 @@ void main()
 
    /* Apply random variation influenced by world space position */
    float c = (worldPos.x + worldPos.z + uFieldSize) / uFieldSize * 2;
-   // float r0 = mix(0.0, 360.0, sin(c + position.w)/2 + 0.5);
-   // float r1 = centerPosition.w; // -1.0 ... 1.0
-   // float r2 = mix(0.0, 2.0, sin(c + texCoord.z)/2 + 0.5) -1.0;       // -1.0 ... 1.0
+   float r0 = mix(0.0, 360.0, sin(c + position.w + gl_InstanceID/64)/2 + 0.5);
+   float r1 = centerPosition.w; // -1.0 ... 1.0
+   float r2 = mix(0.0, 2.0, sin(c + texCoord.z)/2 + 0.5) -1.0;       // -1.0 ... 1.0
    // vPosition.w       = r0;
    // vCenterPosition.w = r1;
-   // vTexCoord.z       = r2;
-   // vTexCoord.w       = mix(0.00, 0.50, sin(c + texCoord.w)/2 + 0.5) -0.25; // -0.25 ... 0.25
+   vTexCoord       = texCoord;
+   vTexCoord.z       = r2;
+   vTexCoord.w       = mix(0.00, 0.50, sin(c + texCoord.w)/2 + 0.5) -0.25; // -0.25 ... 0.25
    vRandoms.x        = mix(0.75, 1.25, sin(c + randoms.x)/2 + 0.5);
-   vRandoms.y        = mix(0.00, 0.05, sin(c + randoms.y)/2 + 0.5);
+   vRandoms.y        = mix(0.00, 0.05, sin(c + randoms.y + gl_InstanceID/64)/2 + 0.5);
    vRandoms.z        = mix(0.00, 0.05, sin(c + randoms.z + gl_InstanceID/64)/2 + 0.5);
-   vRandoms.w        = mix(0.00, 0.05, sin(c + randoms.w)/2 + 0.5);
+   vRandoms.w        = mix(0.00, 0.05, sin(c + randoms.w + gl_InstanceID/64)/2 + 0.5);
 
     /* Discard blades based on density */
     float d = abs(centerPosition.w) + (1 - heightSample.r);
@@ -73,7 +74,7 @@ void main()
         vDiscardBlade = 1;
 
    /* Rotate blades */
-   float angle = 2 * M_PI * position.w;
+   float angle = 2 * M_PI * r0;
    float xDelta = position.x - centerPosition.x;
    float zDelta = position.z - centerPosition.z;
 	float newX = centerPosition.x + cos(angle) * (xDelta) - sin(angle) * (zDelta);   // x rotated around center
@@ -84,8 +85,8 @@ void main()
 
    if (centerPosition.y > 0.99f) // upper vertices
    {   
-      newX = newX + (uMaxBendingFactor * (2 * centerPosition.w) - 1.0);
-      newZ = newZ + (uMaxBendingFactor * (2 * texCoord.z) - 1.0);
+      newX = newX + (uMaxBendingFactor * (2 * r1) - 1.0);
+      newZ = newZ + (uMaxBendingFactor * (2 * r2) - 1.0);
    }
 
    /* Scale blade dimensions based on sampled height */
@@ -116,6 +117,6 @@ void main()
    vCenterPosition.xz = centerPosition.xz;
    vCenterPosition.y = newY;  // update center's y coordinate with actual height
    vCenterPosition.w = centerPosition.w;
-   vTexCoord       = texCoord;
+   // vTexCoord       = texCoord;
    // vRandoms = randoms;
 }

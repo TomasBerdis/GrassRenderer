@@ -8,7 +8,7 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -250.0f);	// reset rotation
 
 	/* Create grass field */
-	grassField = std::make_shared<GrassField>(200.0f, 10.0f, 700);
+	grassField = std::make_shared<GrassField>(200.0f, 8.0f, 700);
 	terrain = std::make_shared<Terrain>(200.0f, 100, 100);
 
 }
@@ -411,7 +411,7 @@ void OpenGLWindow::initGui()
 		{
 			static int bladeCount = 700;
 			static float fieldSize = 200.0f;
-			static float patchSize = 10.0f;
+			static float patchSize = 8.0f;
 			static float terrainSize = 200.0f;
 			static int rows = 100;
 			static int cols = 100;

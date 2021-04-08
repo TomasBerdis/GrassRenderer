@@ -63,7 +63,7 @@ protected:
 private:
 	bool initialized;
 	int maxTessLevel = 5;
-	float maxBendingFactor = 0.5f;
+	float maxBendingFactor = 0.3f;
 	float maxDistance = 500.0f;
 	int time;
 	float cameraSpeed = 1.0f;
