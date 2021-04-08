@@ -15,7 +15,7 @@ out int vDiscardBlade;
 
 uniform sampler2D uHeightMap;
 uniform float uMaxBendingFactor;
-uniform float uTime;
+uniform int uTime;
 uniform float uFieldSize;
 uniform int uWindEnabled;
 uniform vec3 uWindParams;
@@ -31,8 +31,8 @@ float w(vec3 p)
    float c1 = uWindParams.x;
    float c2 = 2.0;
    float c3 = uWindParams.y;
-   float timeScale = (1 - uWindParams.z) * 50 + 150;  // z = 0 -> slow, z = 1 -> fast
-   float a = M_PI * p.x + uTime/timeScale + (M_PI / 4) / (abs(cos(c2 * M_PI * p.z)) + 0.00001);
+   float timeScale = (1 - uWindParams.z) * 500 + 1500;  // z = 0 -> slow, z = 1 -> fast
+   float a = M_PI * p.x + 10.0 * (uWindParams.z + 1.0) + (M_PI / 4) / (abs(cos(c2 * M_PI * p.z)) + 0.00001);
    return sin(c1 * a) * cos(c3 * a);
 }
 
@@ -54,14 +54,18 @@ void main()
    vec4 heightSample = texture(uHeightMap, mapCoords);
 
    /* Apply random variation influenced by world space position */
-   float c = 42;
-   float r0 = position.w       * (worldPos.x + uFieldSize * 2)/uFieldSize;
-   float r1 = centerPosition.w * (worldPos.x + uFieldSize * 2)/uFieldSize;
-   float r2 = texCoord.z       * (worldPos.x + uFieldSize * 2)/uFieldSize;
-   vPosition.w       = position.w       * sin(5 * worldPos.x + worldPos.z);
-   vCenterPosition.w = centerPosition.w * sin(4 * worldPos.x + worldPos.z);
-   vTexCoord.zw      = texCoord.zw      * sin(9 * worldPos.x + worldPos.z);
-   vRandoms          = randoms          * sin(8 * worldPos.x + worldPos.z);
+   float c = (worldPos.x + worldPos.z + uFieldSize) / uFieldSize * 2;
+   // float r0 = mix(0.0, 360.0, sin(c + position.w)/2 + 0.5);
+   // float r1 = centerPosition.w; // -1.0 ... 1.0
+   // float r2 = mix(0.0, 2.0, sin(c + texCoord.z)/2 + 0.5) -1.0;       // -1.0 ... 1.0
+   // vPosition.w       = r0;
+   // vCenterPosition.w = r1;
+   // vTexCoord.z       = r2;
+   // vTexCoord.w       = mix(0.00, 0.50, sin(c + texCoord.w)/2 + 0.5) -0.25; // -0.25 ... 0.25
+   vRandoms.x        = mix(0.75, 1.25, sin(c + randoms.x)/2 + 0.5);
+   vRandoms.y        = mix(0.00, 0.05, sin(c + randoms.y)/2 + 0.5);
+   vRandoms.z        = mix(0.00, 0.05, sin(c + randoms.z + gl_InstanceID/64)/2 + 0.5);
+   vRandoms.w        = mix(0.00, 0.05, sin(c + randoms.w)/2 + 0.5);
 
     /* Discard blades based on density */
     float d = abs(centerPosition.w) + (1 - heightSample.r);
@@ -80,8 +84,8 @@ void main()
 
    if (centerPosition.y > 0.99f) // upper vertices
    {   
-      newX = newX + (uMaxBendingFactor * (2 * centerPosition.w));
-      newZ = newZ + (uMaxBendingFactor * (2 * texCoord.z));
+      newX = newX + (uMaxBendingFactor * (2 * centerPosition.w) - 1.0);
+      newZ = newZ + (uMaxBendingFactor * (2 * texCoord.z) - 1.0);
    }
 
    /* Scale blade dimensions based on sampled height */
@@ -99,18 +103,19 @@ void main()
    if ((centerPosition.y > 0.99f) && (uWindEnabled == 1)) // upper vertices
    {
       /* Inspired by Horizon Zero Dawn GDC presentation */
-      newX = newX + (2 * sin (0.05 * (worldPos.x + worldPos.y + worldPos.z + uTime/10))) + 1;
-      newZ = newZ + (1 * sin (0.05 * (worldPos.x + worldPos.y + worldPos.z + uTime/50))) + 0.5;
+      newX = newX + (1 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/30))) + 1;
+      newZ = newZ + (0.5 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/100))) + 0.5;
       newX = newX + w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
       newZ = newZ + w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
    }
 
    gl_Position     = vec4(newX, newY, newZ, 1.0f);
    
-   vCenterPosition.y = newY;  // update center's y coordinate with actual height
 
    vPosition       = patchTranslations[gl_InstanceID] * gl_Position;
-   vCenterPosition = centerPosition;
+   vCenterPosition.xz = centerPosition.xz;
+   vCenterPosition.y = newY;  // update center's y coordinate with actual height
+   vCenterPosition.w = centerPosition.w;
    vTexCoord       = texCoord;
-   vRandoms        = randoms;
+   // vRandoms = randoms;
 }

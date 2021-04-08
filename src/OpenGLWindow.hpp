@@ -65,7 +65,7 @@ private:
 	int maxTessLevel = 5;
 	float maxBendingFactor = 0.5f;
 	float maxDistance = 500.0f;
-	float time;
+	int time;
 	float cameraSpeed = 1.0f;
 	int windowWidth;
 	int windowHeight;
@@ -78,7 +78,7 @@ private:
 	glm::mat4 mvp;
 	glm::vec3 lightPosition { 100.0, 500.0, 100.0 };
 	glm::vec3 lightColor{ 0.086, 0.837, 0.388 };
-	glm::vec3 windParams{ 2.0, 2.0, 0.0 };
+	glm::vec3 windParams{ 1.0, 1.0, 0.0 };
 
 	Camera *camera;
 	std::shared_ptr<GrassField> grassField;

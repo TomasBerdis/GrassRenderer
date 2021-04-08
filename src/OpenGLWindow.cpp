@@ -260,7 +260,10 @@ void OpenGLWindow::initializeGL()
 void OpenGLWindow::tick()
 {
 	/* Update wind speed */
-	windParams.z = glm::cos(time / 200) / 2 + 0.5;	// 0 - 1
+	const float pi = glm::pi<float>();
+	windParams.z = glm::cos(time * pi / 10000) / 2 + 0.5;	// 0 - 1	// period 10s
+
+	std::cout << "Time: " << time << "Wind param: " << windParams.z << std::endl;
 	update();
 }
 
@@ -276,7 +279,7 @@ void OpenGLWindow::paintGL()
 	const qreal retinaScale = devicePixelRatio();
 
 	mvp = camera->getProjectionMatrix() * camera->getViewMatrix();
-	time = timer.elapsed() / 10;
+	time = timer.elapsed();
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
 	gl->glClearColor(0.45, 0.5, 0.5, 1.0);
@@ -474,7 +477,7 @@ void OpenGLWindow::drawGrass()
 	grassShaderProgram->set3fv("uLightPos", glm::value_ptr(lightPosition));
 	grassShaderProgram->set3fv("uLightColor", glm::value_ptr(lightColor));
 	grassShaderProgram->set3fv("uWindParams", glm::value_ptr(windParams));
-	gl->glUniform1f(uTime, time);
+	gl->glUniform1i(uTime, time);
 	gl->glUniform1f(uFieldSize, grassField->getFieldSize());
 	gl->glUniform1f(uMaxDistance, maxDistance);
 	gl->glUniform1i(uWindEnabled, windEnabled);
