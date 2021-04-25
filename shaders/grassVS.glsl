@@ -40,7 +40,12 @@ float w(vec3 p)
 void main()
 {
    vDiscardBlade = 0;
-   
+
+   /* Calculate scale for offseting upper vertices based on blade height */
+   // float bladeHeight = 0;
+   // if (centerPosition.y > 0.99f) // upper vertices
+   //    bladeHeight = position.y;
+
    /* Calculate world space position */
    float patchX = patchTranslations[gl_InstanceID][3][0];
    float patchY = patchTranslations[gl_InstanceID][3][1];
@@ -56,39 +61,37 @@ void main()
 
    /* Apply random variation influenced by world space position */
    float c = (worldPos.x + worldPos.z + uFieldSize) / uFieldSize * 2;
-   float r0 = mix(0.0, 360.0, sin(c + position.w + gl_InstanceID/64)/2 + 0.5);
+   float r0 = mix(0.0, 360.0, sin(c + position.w)/2 + 0.5);
    float r1 = centerPosition.w; // -1.0 ... 1.0
-   float r2 = mix(0.0, 2.0, sin(c + texCoord.z + gl_InstanceID/64)/2 + 0.5) -1.0;       // -1.0 ... 1.0
+   float r2 = mix(0.0, 2.0, sin(c + texCoord.z)/2 + 0.5) -1.0;       // -1.0 ... 1.0
    // vPosition.w       = r0;
    // vCenterPosition.w = r1;
-   vTexCoord       = texCoord;
+   vTexCoord         = texCoord;
    vTexCoord.z       = r2;
    vTexCoord.w       = mix(0.00, 0.50, sin(c + texCoord.w)/2 + 0.5) -0.25; // -0.25 ... 0.25
    vRandoms.x        = mix(0.75, 1.25, sin(c + randoms.x)/2 + 0.5);
-   vRandoms.y        = mix(0.00, 0.05, sin(c + randoms.y + gl_InstanceID/64)/2 + 0.5);
-   vRandoms.z        = mix(0.00, 0.05, sin(c + randoms.z + gl_InstanceID/64)/2 + 0.5);
-   vRandoms.w        = mix(0.00, 0.05, sin(c + randoms.w + gl_InstanceID/64)/2 + 0.5);
+   vRandoms.y        = mix(0.00, 0.05, sin(c + randoms.y)/2 + 0.5);
+   vRandoms.z        = mix(0.00, 0.05, sin(c + randoms.z)/2 + 0.5);
+   vRandoms.w        = mix(0.00, 0.05, sin(c + randoms.w)/2 + 0.5);
 
-    /* Discard blades based on density */
-    float d = abs(centerPosition.w) + (1 - heightSample.r);
-    if (d > 1)
-        vDiscardBlade = 1;
+   /* Discard blades based on density */
+   float d = abs(centerPosition.w) + (1 - heightSample.r);
+   if (d > 1)
+      vDiscardBlade = 1;
+
+   float newX = position.x;
+   float newY = position.y;
+   float newZ = position.z;
 
    /* Rotate blades */
    float angle = 2 * M_PI * r0;
-   float xDelta = position.x - centerPosition.x;
-   float zDelta = position.z - centerPosition.z;
-	float newX = centerPosition.x + cos(angle) * (xDelta) - sin(angle) * (zDelta);   // x rotated around center
-	float newZ = centerPosition.z + sin(angle) * (xDelta) + cos(angle) * (zDelta);   // z rotated around center
-   
-   /* New height sampled from height map */
-   float newY = position.y + mix(0.0, uMaxTerrainHeight, 1 - heightSample.b) ;
+   float xDelta = newX - centerPosition.x;
+   float zDelta = newZ - centerPosition.z;
+	newX = centerPosition.x + cos(angle) * (xDelta) - sin(angle) * (zDelta);   // x rotated around center
+	newZ = centerPosition.z + sin(angle) * (xDelta) + cos(angle) * (zDelta);   // z rotated around center
 
-   if (centerPosition.y > 0.99f) // upper vertices
-   {   
-      newX = newX + (uMaxBendingFactor * (2 * r1) - 1.0);
-      newZ = newZ + (uMaxBendingFactor * (2 * r2) - 1.0);
-   }
+   /* New height sampled from height map */
+   newY = newY + mix(0.0, uMaxTerrainHeight, 1 - heightSample.b) ;
 
    /* Scale blade dimensions based on sampled height */
    if (heightSample.g > 0.3)
@@ -101,6 +104,14 @@ void main()
    else
       vDiscardBlade = 1;
 
+   /* Upper vertex starting offset */
+   if (centerPosition.y > 0.99f)
+   {
+      // scale offset based on height (heightSample.g)
+      newX = newX + heightSample.g * ((uMaxBendingFactor * (2 * r1) - 1.0));
+      newZ = newZ + heightSample.g * ((uMaxBendingFactor * (2 * r2) - 1.0));
+   }
+
    /* Move blade randomly */
    // newX = newX + r1;
    // newZ = newZ + r2;
@@ -109,10 +120,10 @@ void main()
    if ((centerPosition.y > 0.99f) && (uWindEnabled == 1)) // upper vertices
    {
       /* Inspired by Horizon Zero Dawn GDC presentation */
-      newX = newX + (1.0 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/30 ))) + 1.0;
-      newZ = newZ + (0.5 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/100))) + 0.5;
-      newX = newX + w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
-      newZ = newZ + w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
+      newX = newX + heightSample.g * ((1.0 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/30 ))) + 1.0);
+      newZ = newZ + heightSample.g * ((0.5 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/100))) + 0.5);
+      newX = newX + heightSample.g * w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
+      newZ = newZ + heightSample.g * w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
    }
 
    gl_Position     = vec4(newX, newY, newZ, 1.0f);
