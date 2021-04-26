@@ -62,13 +62,13 @@ void main()
    /* Apply random variation influenced by world space position */
    float c = (worldPos.x + worldPos.z + uFieldSize) / uFieldSize * 2;
    float r0 = mix(0.0, 360.0, sin(c + position.w)/2 + 0.5);
-   float r1 = centerPosition.w; // -1.0 ... 1.0
-   float r2 = mix(0.0, 2.0, sin(c + texCoord.z)/2 + 0.5) -1.0;       // -1.0 ... 1.0
+   float r1 = centerPosition.w;
+   float r2 = mix(-1.0, 1.0, sin(c + texCoord.z)/2 + 0.5);
    // vPosition.w       = r0;
    // vCenterPosition.w = r1;
    vTexCoord         = texCoord;
    vTexCoord.z       = r2;
-   vTexCoord.w       = mix(0.00, 0.50, sin(c + texCoord.w)/2 + 0.5) -0.25; // -0.25 ... 0.25
+   vTexCoord.w       = mix(-0.25, 0.25, sin(c + texCoord.w)/2 + 0.5);
    vRandoms.x        = mix(0.75, 1.25, sin(c + randoms.x)/2 + 0.5);
    vRandoms.y        = mix(0.00, 0.05, sin(c + randoms.y)/2 + 0.5);
    vRandoms.z        = mix(0.00, 0.05, sin(c + randoms.z)/2 + 0.5);
@@ -108,8 +108,8 @@ void main()
    if (centerPosition.y > 0.99f)
    {
       // scale offset based on height (heightSample.g)
-      newX = newX + heightSample.g * ((uMaxBendingFactor * (2 * r1) - 1.0));
-      newZ = newZ + heightSample.g * ((uMaxBendingFactor * (2 * r2) - 1.0));
+      newX = newX + heightSample.g * ((uMaxBendingFactor * (/*2 * */r1) /*- 1.0*/));
+      newZ = newZ + heightSample.g * ((uMaxBendingFactor * (/*2 * */r2) /*- 1.0*/));
    }
 
    /* Move blade randomly */
