@@ -8,10 +8,9 @@ OpenGLWindow::OpenGLWindow()
 	camera->rotateCamera(900.0f, -250.0f);	// reset rotation
 
 	/* Create grass field */
-	GrassField::BladeDimensions bladeDimensions{0.1, 0.5, 1.0, 4.0};
+	GrassField::BladeDimensions bladeDimensions{0.1, 0.3, 1.0, 5.0};
 	grassField = std::make_shared<GrassField>(200.0f, 8.0f, 700, bladeDimensions);
-	terrain = std::make_shared<Terrain>(200.0f, 100, 100);
-
+	terrain = std::make_shared<Terrain>(200.0f, 200.0f, 100, 100);
 }
 
 OpenGLWindow::~OpenGLWindow()
@@ -414,10 +413,11 @@ void OpenGLWindow::initGui()
 			static int bladeCount = 700;
 			static float fieldSize = 200.0f;
 			static float patchSize = 8.0f;
-			static float terrainSize = 200.0f;
+			static float terrainWidth = 200.0f;
+			static float terrainLength = 200.0f;
 			static int rows = 100;
 			static int cols = 100;
-			static GrassField::BladeDimensions bladeDimensions{ 0.1, 0.5, 1.0, 4.0 };
+			static GrassField::BladeDimensions bladeDimensions{ 0.1, 0.3, 1.0, 5.0 };
 
 			SliderFloat("Field size", &fieldSize, 100.0f, 1000.0f, "%.f");
 			SliderFloat("Patch size", &patchSize, 1.0f, 100.0f, "%.f");
@@ -427,12 +427,13 @@ void OpenGLWindow::initGui()
 			SliderFloat("Maximum width", &bladeDimensions.wMax, 0.0f, 10.0f, "%.1f");
 			SliderFloat("Minimum height", &bladeDimensions.hMin, 0.0f, 10.0f, "%.1f");
 			SliderFloat("Maximum height", &bladeDimensions.hMax, 0.0f, 10.0f, "%.1f");
-			SliderFloat("Terrain size", &terrainSize, 100.0f, 1000.0f, "%.f");
+			SliderFloat("Terrain width", &terrainWidth, 100.0f, 1000.0f, "%.f");
+			SliderFloat("Terrain length", &terrainLength, 100.0f, 1000.0f, "%.f");
 			SliderInt("Terrain rows", &rows, 1, 1000, "%d", NULL);
 			SliderInt("Terrain columns", &cols, 1, 1000, "%d", NULL);
 
 			if (Button("Regenerate"))
-				regenerateField(fieldSize, patchSize, bladeCount, terrainSize, rows, cols, bladeDimensions);
+				regenerateField(fieldSize, patchSize, bladeCount, terrainWidth, terrainLength, rows, cols, bladeDimensions);
 		}
 
 	}
@@ -443,12 +444,15 @@ void OpenGLWindow::initGui()
 void OpenGLWindow::drawTerrain()
 {
 	GLint uMaxTerrainHeight = gl->glGetUniformLocation(terrainShaderProgram->getId(), "uMaxTerrainHeight");
+	GLint uTerrainWidth = gl->glGetUniformLocation(terrainShaderProgram->getId(), "uTerrainWidth");
+	GLint uTerrainHeight = gl->glGetUniformLocation(terrainShaderProgram->getId(), "uTerrainHeight");
 
 	terrainShaderProgram->use();
 	terrainVAO->bind();
 	terrainShaderProgram->setMatrix4fv("uMVP", glm::value_ptr(mvp));
-	terrainShaderProgram->set1f("uFieldSize", terrain->getTerrainSize());
 	gl->glUniform1f(uMaxTerrainHeight, maxTerrainHeight);
+	gl->glUniform1f(uTerrainWidth, terrain->getTerrainWidth());
+	gl->glUniform1f(uTerrainHeight, terrain->getTerrainLength());
 
 	gl->glPolygonMode(GL_FRONT_AND_BACK, terrainRasterizationMode);
 	gl->glEnable(GL_PRIMITIVE_RESTART);
@@ -546,7 +550,7 @@ void OpenGLWindow::drawDummy()
 	gl->glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
-void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainSize, int rows, int cols, GrassField::BladeDimensions bladeDimensions)
+void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainWidth, float terrainLength, int rows, int cols, GrassField::BladeDimensions bladeDimensions)
 {
 	grassField.reset();
 	terrain.reset();
@@ -564,7 +568,7 @@ void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBl
 	terrainVAO.reset();
 
 	grassField = std::make_shared<GrassField>(fieldSize, patchSize, grassBladeCount, bladeDimensions);
-	terrain = std::make_shared<Terrain>(terrainSize, rows, cols);
+	terrain = std::make_shared<Terrain>(terrainWidth, terrainLength, rows, cols);
 
 	/* Grass VAO setup */
 	grassPositionBuffer = grassField->getGrassVertexBuffer();

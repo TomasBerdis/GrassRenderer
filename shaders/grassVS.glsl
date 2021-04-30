@@ -41,11 +41,6 @@ void main()
 {
    vDiscardBlade = 0;
 
-   /* Calculate scale for offseting upper vertices based on blade height */
-   // float bladeHeight = 0;
-   // if (centerPosition.y > 0.99f) // upper vertices
-   //    bladeHeight = position.y;
-
    /* Calculate world space position */
    float patchX = patchTranslations[gl_InstanceID][3][0];
    float patchY = patchTranslations[gl_InstanceID][3][1];
@@ -94,7 +89,7 @@ void main()
    newY = newY + mix(0.0, uMaxTerrainHeight, 1 - heightSample.b) ;
 
    /* Scale blade dimensions based on sampled height */
-   if (heightSample.g > 0.3)
+   if (heightSample.g > 0.1)
    {
       newX = newX + (centerPosition.x - newX) * (1 - heightSample.g);
       newZ = newZ + (centerPosition.z - newZ) * (1 - heightSample.g);

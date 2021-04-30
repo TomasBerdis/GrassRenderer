@@ -1,7 +1,7 @@
 #include "Terrain.hpp"
 
-Terrain::Terrain(float terrainSize, int rows, int cols)
-    : terrainSize{ terrainSize }, rows{ rows }, cols{ cols }
+Terrain::Terrain(float terrainWidth, float terrainLength, int rows, int cols)
+    : terrainWidth{ terrainWidth }, terrainLength{ terrainLength }, rows{ rows }, cols{ cols }
 {
     indexCount = (rows - 1) * cols * 2 + rows - 1;
     generateTerrain();
@@ -21,9 +21,14 @@ int Terrain::getRestartIndex()
     return restartIndex;
 }
 
-float Terrain::getTerrainSize()
+float Terrain::getTerrainWidth()
 {
-    return terrainSize;
+    return terrainWidth;
+}
+
+float Terrain::getTerrainLength()
+{
+    return terrainLength;
 }
 
 std::shared_ptr<ge::gl::Buffer> Terrain::getTerrainVertexBuffer()
@@ -52,10 +57,10 @@ void Terrain::generateTerrain()
     {
         for (size_t col = 0; col < cols; col++)
         {
-            float normalizedHeight = (float)row / (rows - 1);
-            float normalizedWidth  = (float)col / (cols - 1);
-            float xOffset = glm::mix(-terrainSize / 2,  terrainSize / 2, normalizedWidth);
-            float zOffset = glm::mix( terrainSize / 2, -terrainSize / 2, normalizedHeight);
+            float normalizedLength = (float)row / (rows - 1);
+            float normalizedWidth = (float)col / (cols - 1);
+            float xOffset = glm::mix(-terrainWidth  / 2,  terrainWidth  / 2, normalizedWidth);
+            float zOffset = glm::mix( terrainLength / 2, -terrainLength / 2, normalizedLength);
             terrainVertices->push_back(glm::vec2(xOffset, zOffset));
         }
     }
@@ -77,10 +82,6 @@ void Terrain::generateTerrain()
         // Restart triangle strips
         terrainIndices->push_back(restartIndex);
     }
-
-    /* Generate normals */
-    glm::vec2 v = terrainVertices->at(rowColToIndex(0,0)); // row col
-    v.length;
 }
 
 int Terrain::rowColToIndex(int row, int col)

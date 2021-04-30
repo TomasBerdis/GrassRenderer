@@ -50,7 +50,7 @@ protected:
 	void drawSkybox();
 	void drawDummy();
 
-	void regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainSize, int rows, int cols, GrassField::BladeDimensions bladeDimensions);
+	void regenerateField(float fieldSize, float patchSize, int grassBladeCount, float terrainWidth, float terrainHeight, int rows, int cols, GrassField::BladeDimensions bladeDimensions);
 
 	/* Event handlers */
 	void wheelEvent(QWheelEvent* event);
@@ -68,7 +68,7 @@ private:
 	float maxDistance = 500.0f;
 	float maxTerrainHeight = 30.0f;
 	int time;
-	float cameraSpeed = 2.0f;
+	float cameraSpeed = 3.0f;
 	int windowWidth;
 	int windowHeight;
 
