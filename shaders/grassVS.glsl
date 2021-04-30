@@ -37,16 +37,43 @@ float w(vec3 p)
    return sin(c1 * a) * cos(c3 * a);
 }
 
+vec2 rotate(vec2 point, float degree, vec2 pivot)
+{
+    float radAngle = radians(degree);
+    float x = point.x;
+    float y = point.y;
+
+    float rX = pivot.x + (x - pivot.x) * cos(radAngle) - (y - pivot.y) * sin(radAngle);
+    float rY = pivot.y + (x - pivot.x) * sin(radAngle) + (y - pivot.y) * cos(radAngle);
+
+    return vec2(rX, rY);
+}
+
 void main()
 {
    vDiscardBlade = 0;
+   vec2 rotation;
+   float newX = position.x;
+   float newY = position.y;
+   float newZ = position.z;
+   float centerNewX = centerPosition.x;
+   float centerNewY = centerPosition.y;
+   float centerNewZ = centerPosition.z;
 
+   /* Rotate patch */
+   rotation = rotate(vec2(newX, newZ), (gl_InstanceID % 4) * 90, vec2(0.0, 0.0));
+   newX = rotation.x;
+   newZ = rotation.y;
+   rotation = rotate(vec2(centerNewX, centerNewZ), (gl_InstanceID % 4) * 90, vec2(0.0, 0.0));
+   centerNewX = rotation.x;
+   centerNewZ = rotation.y;
+   
    /* Calculate world space position */
    float patchX = patchTranslations[gl_InstanceID][3][0];
    float patchY = patchTranslations[gl_InstanceID][3][1];
    float patchZ = patchTranslations[gl_InstanceID][3][2];
-   vec3 worldPos       = vec3(patchX + position.x, patchY + position.y, patchZ + position.z);
-   vec3 centerWorldPos = vec3(patchX + centerPosition.x, patchY + centerPosition.y, patchZ + centerPosition.z);
+   vec3 worldPos       = vec3(patchX + newX, patchY + newY, patchZ + newZ);
+   vec3 centerWorldPos = vec3(patchX + centerNewX, patchY + centerNewY, patchZ + centerNewZ);
 
    /* Calculate height map coordinates */
    float x =      (centerWorldPos.x + uFieldSize/2) / uFieldSize;    // normalize x (possitive x is pointing away from us)
@@ -74,16 +101,10 @@ void main()
    if (d > 1)
       vDiscardBlade = 1;
 
-   float newX = position.x;
-   float newY = position.y;
-   float newZ = position.z;
-
-   /* Rotate blades */
-   float angle = 2 * M_PI * r0;
-   float xDelta = newX - centerPosition.x;
-   float zDelta = newZ - centerPosition.z;
-	newX = centerPosition.x + cos(angle) * (xDelta) - sin(angle) * (zDelta);   // x rotated around center
-	newZ = centerPosition.z + sin(angle) * (xDelta) + cos(angle) * (zDelta);   // z rotated around center
+   /* Rotate blades around center */
+   rotation = rotate(vec2(newX, newZ), r0, vec2(centerNewX, centerNewZ));
+   newX = rotation.x;
+   newZ = rotation.y;
 
    /* New height sampled from height map */
    newY = newY + mix(0.0, uMaxTerrainHeight, 1 - heightSample.b) ;
@@ -91,25 +112,21 @@ void main()
    /* Scale blade dimensions based on sampled height */
    if (heightSample.g > 0.1)
    {
-      newX = newX + (centerPosition.x - newX) * (1 - heightSample.g);
-      newZ = newZ + (centerPosition.z - newZ) * (1 - heightSample.g);
-      if (centerPosition.y > 0.99f) // upper vertices
+      newX = newX + (centerNewX - newX) * (1 - heightSample.g);
+      newZ = newZ + (centerNewZ - newZ) * (1 - heightSample.g);
+      if (centerNewY > 0.99f) // upper vertices
          newY = newY - (1 - heightSample.g) * 5;
    }
    else
       vDiscardBlade = 1;
 
    /* Upper vertex starting offset */
-   if (centerPosition.y > 0.99f)
+   if (centerNewY > 0.99f)
    {
       // scale offset based on height (heightSample.g)
       newX = newX + heightSample.g * ((uMaxBendingFactor * (/*2 * */r1) /*- 1.0*/));
       newZ = newZ + heightSample.g * ((uMaxBendingFactor * (/*2 * */r2) /*- 1.0*/));
    }
-
-   /* Move blade randomly */
-   // newX = newX + r1;
-   // newZ = newZ + r2;
 
    /* Wind calculation */
    if ((centerPosition.y > 0.99f) && (uWindEnabled == 1)) // upper vertices
@@ -124,7 +141,7 @@ void main()
    gl_Position     = vec4(newX, newY, newZ, 1.0f);
 
    vPosition          = patchTranslations[gl_InstanceID] * gl_Position; // move the patch
-   vCenterPosition.xz = centerPosition.xz;
+   vCenterPosition    = patchTranslations[gl_InstanceID] * vec4(centerNewX, 1.0f, centerNewZ, 1.0f);
    vCenterPosition.y  = newY;  // update center's y coordinate with actual height
    vCenterPosition.w  = centerPosition.w;
    // vTexCoord       = texCoord;
