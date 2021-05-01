@@ -4,8 +4,8 @@ OpenGLWindow::OpenGLWindow()
 	: QOpenGLWidget()
 {
 	/* Create camera */
-	camera = new Camera(glm::vec3(0.0f, 100.0f, 160.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
-	camera->rotateCamera(900.0f, -250.0f);	// reset rotation
+	camera = new Camera(glm::vec3(0.0f, 125.0f, 230.0f), 45, (float)width() / (float)height(), 0.1f, 1000.0f);
+	camera->rotateCamera(900.0f, -270.0f);	// reset rotation
 
 	/* Create grass field */
 	GrassField::BladeDimensions bladeDimensions{0.1, 0.3, 1.0, 5.0};
