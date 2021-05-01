@@ -114,7 +114,8 @@ void main()
       newZ = rotation.y;
 
       /* New height sampled from height map */
-      newY = newY + mix(0.0, uMaxTerrainHeight, 1 - heightSample.b) ;
+      float terrainHeight = mix(0.0, uMaxTerrainHeight, 1 - heightSample.b);
+      newY = newY + terrainHeight;
 
       /* Scale blade dimensions based on sampled height */
       if (heightSample.g > 0.1)
@@ -122,7 +123,7 @@ void main()
          newX = newX + (centerNewX - newX) * (1 - heightSample.g);
          newZ = newZ + (centerNewZ - newZ) * (1 - heightSample.g);
          if (centerNewY > 0.99f) // upper vertices
-            newY = newY - (1 - heightSample.g) * 5;
+            newY = newY - ((1 - heightSample.g) * (newY - terrainHeight));
       }
       else
          vDiscardBlade = 1;
