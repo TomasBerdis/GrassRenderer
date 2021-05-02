@@ -40,6 +40,7 @@ public:
     std::vector<glm::vec4> *getGrassRandoms();
 
     std::shared_ptr<ge::gl::Buffer> getPatchTransSSBO();
+    std::shared_ptr<ge::gl::Buffer> getPatchRandomsSSBO();
     std::shared_ptr<ge::gl::Buffer> getGrassVertexBuffer();
     std::shared_ptr<ge::gl::Buffer> getGrassCenterBuffer();
     std::shared_ptr<ge::gl::Buffer> getGrassTexCoordBuffer();

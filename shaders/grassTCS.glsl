@@ -20,7 +20,7 @@ uniform float uMaxDistance;
 uniform vec3 uCameraPos;
 uniform mat4 uMVP;
 
-vec3 calcControlPoint(vec4 lower, vec4 upper)
+vec3 calculateControlPoint(vec4 lower, vec4 upper)
 {
 	float r3 = vTexCoord[0].w;   // r3
 	float r4 = vRandoms[0].x;    // r4
@@ -28,6 +28,7 @@ vec3 calcControlPoint(vec4 lower, vec4 upper)
 	float x = lower.x * r3 + upper.x * (1.0 - r3);
 	float y = lower.y * r4 + upper.y * (1.0 - r4);
 	float z = lower.z * r3 + upper.z * (1.0 - r3);
+
 	return vec3(x, y, z);
 }
 
@@ -36,6 +37,7 @@ void main()
     /* Calculate distance to camera */
     float cameraDistance = length(vPosition[0].xyz - uCameraPos);
 
+    /* Determine blade's tessellation level */
     float tessellationLevel = ceil(uMaxTessLevel * (1 - (cameraDistance / uMaxDistance)));
 
     /* Randomly discard blades based on distance */
@@ -58,8 +60,8 @@ void main()
         gl_TessLevelInner[0] = tessellationLevel;   // top and bottom
         gl_TessLevelInner[1] = tessellationLevel;   // left and right
         
-		controlPoints[0] = calcControlPoint(vPosition[3], vPosition[0]);
-		controlPoints[1] = calcControlPoint(vPosition[2], vPosition[1]);
+		controlPoints[0] = calculateControlPoint(vPosition[3], vPosition[0]);
+		controlPoints[1] = calculateControlPoint(vPosition[2], vPosition[1]);
     }
 
     tcPosition[gl_InvocationID]       = vPosition[gl_InvocationID];

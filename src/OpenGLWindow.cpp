@@ -56,7 +56,9 @@ void OpenGLWindow::initializeGL()
 
 	/* Generating patches */
 	patchTransSSBO = grassField->getPatchTransSSBO();
-	grassShaderProgram->bindBuffer("patchTranslationBuffer", patchTransSSBO);
+	patchRandomsSSBO = grassField->getPatchRandomsSSBO();
+	grassShaderProgram->bindBuffer("patchTranslationsBuffer", patchTransSSBO);
+	grassShaderProgram->bindBuffer("patchRandomsBuffer", patchRandomsSSBO);
 
 	std::vector<float> dummyPos
 	{

@@ -21,9 +21,13 @@ uniform float uFieldSize;
 uniform int uWindEnabled;
 uniform vec3 uWindParams;
 
-layout(std430, binding=0) buffer patchTranslationBuffer
+layout(std430, binding=0) buffer patchTranslationsBuffer
 {
     mat4 patchTranslations[];
+};
+layout(std430, binding=1) buffer patchRandomsBuffer
+{
+    int patchRandoms[];
 };
 
 /* Wind function */
@@ -59,19 +63,20 @@ void main()
    float centerNewX = centerPosition.x;
    float centerNewY = centerPosition.y;
    float centerNewZ = centerPosition.z;
-
-   /* Rotate patch */
-   rotation = rotate(vec2(newX, newZ), (gl_InstanceID % 4) * 90, vec2(0.0, 0.0));
-   newX = rotation.x;
-   newZ = rotation.y;
-   rotation = rotate(vec2(centerNewX, centerNewZ), (gl_InstanceID % 4) * 90, vec2(0.0, 0.0));
-   centerNewX = rotation.x;
-   centerNewZ = rotation.y;
    
    /* Calculate world space position */
    float patchX = patchTranslations[gl_InstanceID][3][0];
    float patchY = patchTranslations[gl_InstanceID][3][1];
    float patchZ = patchTranslations[gl_InstanceID][3][2];
+
+   /* Rotate patch */
+   rotation = rotate(vec2(newX, newZ), (patchRandoms[gl_InstanceID] % 4) * 90, vec2(0.0, 0.0));
+   newX = rotation.x;
+   newZ = rotation.y;
+   rotation = rotate(vec2(centerNewX, centerNewZ), (patchRandoms[gl_InstanceID] % 4) * 90, vec2(0.0, 0.0));
+   centerNewX = rotation.x;
+   centerNewZ = rotation.y;
+
    vec3 worldPos       = vec3(patchX + newX, patchY + newY, patchZ + newZ);
    vec3 centerWorldPos = vec3(patchX + centerNewX, patchY + centerNewY, patchZ + centerNewZ);
 
@@ -89,21 +94,6 @@ void main()
       vDiscardBlade = 1;
    else
    {
-      /* Apply random variation influenced by world space position */
-      // float c = (worldPos.x + worldPos.z + uFieldSize) / uFieldSize * 2;
-      // int freq = 2;
-      // float r0 = mix(0.0, 360.0, sin(c + position.w)/freq + 0.5);
-      // float r1 = centerPosition.w;
-      // float r2 = mix(-1.0, 1.0, sin(c + texCoord.z)/freq + 0.5);
-      // vPosition.w       = r0;
-      // vCenterPosition.w = r1;
-      // vTexCoord         = texCoord;
-      // vTexCoord.z       = r2;
-      // vTexCoord.w       = mix(-0.25, 0.25, sin(c + texCoord.w)/freq + 0.5);
-      // vRandoms.x        = mix(0.75, 1.25, sin(c + randoms.x)/freq + 0.5);
-      // vRandoms.y        = mix(0.00, 0.05, sin(c + randoms.y)/freq + 0.5);
-      // vRandoms.z        = mix(0.00, 0.05, sin(c + randoms.z)/freq + 0.5);
-      // vRandoms.w        = mix(0.00, 0.05, sin(c + randoms.w)/freq + 0.5);
       float r0 = position.w;
       float r1 = centerPosition.w;
       float r2 = texCoord.z;

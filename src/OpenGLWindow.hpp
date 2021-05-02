@@ -105,6 +105,7 @@ private:
 	std::shared_ptr<ge::gl::Buffer> dummyTexCoordBuffer;
 	std::shared_ptr<ge::gl::Buffer> skyboxPositionBuffer;
 	std::shared_ptr<ge::gl::Buffer> patchTransSSBO;
+	std::shared_ptr<ge::gl::Buffer> patchRandomsSSBO;
 
 	std::shared_ptr<ge::gl::Context>	 gl;
 

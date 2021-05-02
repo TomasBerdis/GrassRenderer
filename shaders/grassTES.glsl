@@ -16,9 +16,9 @@ out vec3 teNormal;
 
 uniform mat4 uMVP;
 
-struct SplineData
+struct Spline
 {
-	vec3 pos;
+	vec3 position;
 	vec3 tangent;
 	vec3 a;
 };
@@ -30,14 +30,14 @@ struct SplineData
 	h  - additional control point
 	v  - domain coordinate
 */
-SplineData calcSplinePos(vec3 pb, vec3 h, vec3 pt, float v)
+Spline calculateSplinePosition(vec3 pb, vec3 h, vec3 pt, float v)
 {
-	SplineData result;
+	Spline result;
 	
 	vec3 a = pb + v * (h - pb);
 	vec3 b = h + v * (pt - h);
 
-	result.pos 	   = a + v * (b - a);
+	result.position 	   = a + v * (b - a);
 	result.tangent = (b - a) / length(b - a);
 	result.a 	   = a;
 
@@ -55,12 +55,12 @@ void main()
 	teTexCoord.xy = mix(a, b, v);
 
 	/* Calculate position on splines */
-	SplineData leftSpline  = calcSplinePos(tcPosition[0].xyz, controlPoints[0], tcPosition[3].xyz, v);
-	SplineData rightSpline = calcSplinePos(tcPosition[1].xyz, controlPoints[1], tcPosition[2].xyz, v);
+	Spline leftSpline  = calculateSplinePosition(tcPosition[0].xyz, controlPoints[0], tcPosition[3].xyz, v);
+	Spline rightSpline = calculateSplinePosition(tcPosition[1].xyz, controlPoints[1], tcPosition[2].xyz, v);
     
 	/* Calculate final position and normal */
-	vec3 splinePos = leftSpline.pos * (1.0f - u) + rightSpline.pos * u;
-	vec3 bitangent = (rightSpline.pos - leftSpline.pos) / length(rightSpline.pos - leftSpline.pos * leftSpline.a);
+	vec3 splinePos = leftSpline.position * (1.0f - u) + rightSpline.position * u;
+	vec3 bitangent = (rightSpline.position - leftSpline.position) / length(rightSpline.position - leftSpline.position * leftSpline.a);
 	vec3 tangent   = (leftSpline.tangent * (1.0 - u) + rightSpline.tangent * u) / length(leftSpline.tangent * (1.0 - u) + rightSpline.tangent * u);
 	vec3 normal    = cross(tangent, bitangent) / length(cross(tangent, bitangent));
     gl_Position = uMVP * vec4(splinePos, 1.0f);

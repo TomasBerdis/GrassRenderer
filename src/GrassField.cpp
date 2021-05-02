@@ -75,6 +75,21 @@ std::shared_ptr<ge::gl::Buffer> GrassField::getPatchTransSSBO()
 	return patchTransSSBO;
 }
 
+std::shared_ptr<ge::gl::Buffer> GrassField::getPatchRandomsSSBO()
+{
+	std::shared_ptr<ge::gl::Buffer> patchRandomsSSBO;
+	std::vector<int> patchRandoms;
+
+	for (size_t i = 0; i < patchCount; i++)
+	{
+		int random = rand();
+		patchRandoms.push_back(random);
+	}
+
+	patchRandomsSSBO = std::make_shared<ge::gl::Buffer>(patchRandoms.size() * sizeof(int), patchRandoms.data());
+	return patchRandomsSSBO;
+}
+
 std::shared_ptr<ge::gl::Buffer> GrassField::getGrassVertexBuffer()
 {
 	std::shared_ptr<ge::gl::Buffer> grassVertexBuffer;
