@@ -41,6 +41,7 @@ float w(vec3 p)
    return sin(c1 * a) * cos(c3 * a);
 }
 
+/* Taken from https://stackoverflow.com/questions/61998702/opengl-es-2-0-rotate-point-around-pivot-point-2d-vertex-shader */
 vec2 rotate(vec2 point, float degree, vec2 pivot)
 {
     float radAngle = radians(degree);
@@ -63,11 +64,6 @@ void main()
    float centerNewX = centerPosition.x;
    float centerNewY = centerPosition.y;
    float centerNewZ = centerPosition.z;
-   
-   /* Calculate world space position */
-   float patchX = patchTranslations[gl_InstanceID][3][0];
-   float patchY = patchTranslations[gl_InstanceID][3][1];
-   float patchZ = patchTranslations[gl_InstanceID][3][2];
 
    /* Rotate patch */
    rotation = rotate(vec2(newX, newZ), (patchRandoms[gl_InstanceID] % 4) * 90, vec2(0.0, 0.0));
@@ -76,7 +72,11 @@ void main()
    rotation = rotate(vec2(centerNewX, centerNewZ), (patchRandoms[gl_InstanceID] % 4) * 90, vec2(0.0, 0.0));
    centerNewX = rotation.x;
    centerNewZ = rotation.y;
-
+   
+   /* Calculate world space position */
+   float patchX = patchTranslations[gl_InstanceID][3][0];
+   float patchY = patchTranslations[gl_InstanceID][3][1];
+   float patchZ = patchTranslations[gl_InstanceID][3][2];
    vec3 worldPos       = vec3(patchX + newX, patchY + newY, patchZ + newZ);
    vec3 centerWorldPos = vec3(patchX + centerNewX, patchY + centerNewY, patchZ + centerNewZ);
 
@@ -137,9 +137,7 @@ void main()
       }
    }
 
-   gl_Position     = vec4(newX, newY, newZ, 1.0f);
-
-   vPosition          = patchTranslations[gl_InstanceID] * gl_Position; // move the patch
+   vPosition          = patchTranslations[gl_InstanceID] * vec4(newX, newY, newZ, 1.0f); // move the patch
    vCenterPosition    = patchTranslations[gl_InstanceID] * vec4(centerNewX, 1.0f, centerNewZ, 1.0f);
    vCenterPosition.y  = newY;  // update center's y coordinate with actual height
    vCenterPosition.w  = centerPosition.w;

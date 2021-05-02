@@ -65,7 +65,7 @@ void main()
 	vec3 normal    = cross(tangent, bitangent) / length(cross(tangent, bitangent));
     gl_Position = uMVP * vec4(splinePos, 1.0f);
 
-    tePosition 		 = splinePos;			// world space position for light calculations
+    tePosition 		 = splinePos;
     teCenterPosition = tcCenterPosition[0];
 	teNormal 		 = normal;
     teRandoms		 = tcRandoms[0];
