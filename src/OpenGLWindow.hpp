@@ -9,6 +9,7 @@
 #include <QDebug>
 #include <QImage>
 #include <QOpenGLTexture>
+#include <QFileDialog>
 
 #include <geGL/geGL.h>
 #include <geGL/Texture.h>
@@ -129,5 +130,4 @@ private:
 	QOpenGLTexture *heightMap;
 
 	unsigned int skyboxTexture;
-	
 };

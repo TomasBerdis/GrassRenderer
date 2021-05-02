@@ -661,6 +661,12 @@ void OpenGLWindow::keyPressEvent(QKeyEvent *event)
 	}
 	if (event->key() == Qt::Key_Control)
 		controlPressed = true;
+	if (event->key() == Qt::Key_M)
+	{
+		QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), "../res", tr("Image Files (*.png *.jpg *.bmp)"));
+		if (fileName != NULL)
+			heightMap = new QOpenGLTexture(QImage(fileName).mirrored());
+	}
 
 	update();
 }
