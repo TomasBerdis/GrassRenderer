@@ -557,6 +557,7 @@ void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBl
 	grassField.reset();
 	terrain.reset();
 	patchTransSSBO.reset();
+	patchRandomsSSBO.reset();
 
 	grassPositionBuffer.reset();
 	grassCenterPositionBuffer.reset();
@@ -578,7 +579,9 @@ void OpenGLWindow::regenerateField(float fieldSize, float patchSize, int grassBl
 	grassTexCoordBuffer = grassField->getGrassTexCoordBuffer();
 	grassRandomsBuffer = grassField->getGrassRandomsBuffer();
 	patchTransSSBO = grassField->getPatchTransSSBO();
-	grassShaderProgram->bindBuffer("patchTranslationBuffer", patchTransSSBO);
+	patchRandomsSSBO = grassField->getPatchRandomsSSBO();
+	grassShaderProgram->bindBuffer("patchTranslationsBuffer", patchTransSSBO);
+	grassShaderProgram->bindBuffer("patchRandomsBuffer", patchRandomsSSBO);
 
 	grassVAO = std::make_shared<ge::gl::VertexArray>();
 	grassVAO->addAttrib(grassPositionBuffer, 0, 4, GL_FLOAT);
