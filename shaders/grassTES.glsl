@@ -37,9 +37,9 @@ Spline calculateSplinePosition(vec3 pb, vec3 h, vec3 pt, float v)
 	vec3 a = pb + v * (h - pb);
 	vec3 b = h + v * (pt - h);
 
-	result.position 	   = a + v * (b - a);
-	result.tangent = (b - a) / length(b - a);
-	result.a 	   = a;
+	result.position = a + v * (b - a);
+	result.tangent  = (b - a) / length(b - a);
+	result.a 	    = a;
 
 	return result;
 }
@@ -49,10 +49,8 @@ void main()
 	float u = gl_TessCoord.x;
 	float v = gl_TessCoord.y;
 
-	/* Calculate texture coordinates */
-	vec2 a = mix(tcTexCoord[3].xy, tcTexCoord[2].xy, u);
-	vec2 b = mix(tcTexCoord[0].xy, tcTexCoord[1].xy, u);
-	teTexCoord.xy = mix(a, b, v);
+	/* Set texture coordinates */
+	teTexCoord.st = vec2(u, v);
 
 	/* Calculate position on splines */
 	Spline leftSpline  = calculateSplinePosition(tcPosition[0].xyz, controlPoints[0], tcPosition[3].xyz, v);
