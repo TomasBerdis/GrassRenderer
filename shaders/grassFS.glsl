@@ -22,7 +22,7 @@ void main()
         vec4 top    = vec4(0.086, 0.837, 0.388, 1.0);
         vec4 bottom = vec4(0.086, 0.288, 0.213, 1.0);
 
-        color = vec4(mix(top, bottom, teTexCoord.y));
+        color = vec4(mix(bottom, top, teTexCoord.t));
         color = vec4(color.r + teRandoms.y, color.g + teRandoms.z, color.b + teRandoms.w, color.a);
 
         /* Lighting */

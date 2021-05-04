@@ -33,8 +33,6 @@ void OpenGLWindow::initializeGL()
 
 	/* OpenGL states */
 	gl->glEnable(GL_DEPTH_TEST);
-	/*gl->glEnable(GL_BLEND);
-	gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);*/
 
 	/* Shaders */
 	std::shared_ptr<ge::gl::Shader> grassVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER		    , ge::util::loadTextFile(GRASS_VS));
@@ -243,7 +241,7 @@ void OpenGLWindow::initializeGL()
 
 	// Load textures (mirrored vertically because of y axis differences between OpenGL and QImage)
 	debugTexture	  = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
-	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA));
+	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA).mirrored());
 	heightMap		  = new QOpenGLTexture(QImage(HEIGHT_MAP).mirrored());
 
 	// Load skybox
