@@ -263,7 +263,6 @@ void OpenGLWindow::tick()
 	const float pi = glm::pi<float>();
 	windParams.z = glm::cos(time * pi / 10000) / 2 + 0.5;	// 0 - 1	// period 10s
 
-	//std::cout << "Time: " << time << "Wind param: " << windParams.z << std::endl;
 	update();
 }
 
@@ -282,7 +281,7 @@ void OpenGLWindow::paintGL()
 	time = timer.elapsed();
 
 	gl->glViewport(0, 0, windowWidth * retinaScale, windowHeight * retinaScale);
-	gl->glClearColor(1.0, 1.0, 1.0, 1.0);
+	gl->glClearColor(0.0, 0.0, 0.0, 1.0);
 	gl->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	/* INITIALIZE GUI */
@@ -297,7 +296,7 @@ void OpenGLWindow::paintGL()
 	drawTerrain();
 
 	/* DRAW DUMMY */
-	drawDummy();
+	//drawDummy();
 
 	/* DRAW GRASS */
 	drawGrass();
