@@ -130,8 +130,8 @@ void main()
       if ((centerPosition.y > 0.99f) && (uWindEnabled == 1)) // upper vertices
       {
          /* Inspired by Horizon Zero Dawn GDC presentation */
-         newX = newX + heightSample.g * ((1.0 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/30 ))) + 1.0);
-         newZ = newZ + heightSample.g * ((0.5 * sin (0.03 * (worldPos.x + worldPos.y + worldPos.z + uTime/100))) + 0.5);
+         newX = newX + heightSample.g * ((1.0 * sin (0.03 * (centerWorldPos.x + centerWorldPos.y + centerWorldPos.z + uTime/30 ))) + 1.0);
+         newZ = newZ + heightSample.g * ((0.5 * sin (0.03 * (centerWorldPos.x + centerWorldPos.y + centerWorldPos.z + uTime/100))) + 0.5);
          newX = newX + heightSample.g * w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
          newZ = newZ + heightSample.g * w(vec3(centerWorldPos.x, newY, centerWorldPos.z));
       }

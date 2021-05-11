@@ -49,9 +49,6 @@ void main()
 	float u = gl_TessCoord.x;
 	float v = gl_TessCoord.y;
 
-	/* Set texture coordinates */
-	teTexCoord.st = vec2(u, v);
-
 	/* Calculate position on splines */
 	Spline leftSpline  = calculateSplinePosition(tcPosition[0].xyz, controlPoints[0], tcPosition[3].xyz, v);
 	Spline rightSpline = calculateSplinePosition(tcPosition[1].xyz, controlPoints[1], tcPosition[2].xyz, v);
@@ -62,6 +59,9 @@ void main()
 	vec3 tangent   = (leftSpline.tangent * (1.0 - u) + rightSpline.tangent * u) / length(leftSpline.tangent * (1.0 - u) + rightSpline.tangent * u);
 	vec3 normal    = cross(tangent, bitangent) / length(cross(tangent, bitangent));
     gl_Position = uMVP * vec4(splinePos, 1.0f);
+
+	/* Set texture coordinates */
+	teTexCoord.st = vec2(u, v);
 
     tePosition 		 = splinePos;
     teCenterPosition = tcCenterPosition[0];
