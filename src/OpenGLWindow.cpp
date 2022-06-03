@@ -35,16 +35,16 @@ void OpenGLWindow::initializeGL()
 	gl->glEnable(GL_DEPTH_TEST);
 
 	/* Shaders */
-	std::shared_ptr<ge::gl::Shader> grassVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER		    , ge::util::loadTextFile(GRASS_VS));
-	std::shared_ptr<ge::gl::Shader> grassTCS	= std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER   , ge::util::loadTextFile(GRASS_TCS));
-	std::shared_ptr<ge::gl::Shader> grassTES	= std::make_shared<ge::gl::Shader>(GL_TESS_EVALUATION_SHADER, ge::util::loadTextFile(GRASS_TES));
-	std::shared_ptr<ge::gl::Shader> grassFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(GRASS_FS));
-	std::shared_ptr<ge::gl::Shader> terrainVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile(TERRAIN_VS));
-	std::shared_ptr<ge::gl::Shader> terrainFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(TERRAIN_FS));
-	std::shared_ptr<ge::gl::Shader> dummyVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile(DUMMY_VS));
-	std::shared_ptr<ge::gl::Shader> dummyFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(DUMMY_FS));
-	std::shared_ptr<ge::gl::Shader> skyboxVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile(SKYBOX_VS));
-	std::shared_ptr<ge::gl::Shader> skyboxFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile(SKYBOX_FS));
+	std::shared_ptr<ge::gl::Shader> grassVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER		    , ge::util::loadTextFile("../shaders/grassVS.glsl"));
+	std::shared_ptr<ge::gl::Shader> grassTCS	= std::make_shared<ge::gl::Shader>(GL_TESS_CONTROL_SHADER   , ge::util::loadTextFile("../shaders/grassTCS.glsl"));
+	std::shared_ptr<ge::gl::Shader> grassTES	= std::make_shared<ge::gl::Shader>(GL_TESS_EVALUATION_SHADER, ge::util::loadTextFile("../shaders/grassTES.glsl"));
+	std::shared_ptr<ge::gl::Shader> grassFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile("../shaders/grassFS.glsl"));
+	std::shared_ptr<ge::gl::Shader> terrainVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile("../shaders/terrainVS.glsl"));
+	std::shared_ptr<ge::gl::Shader> terrainFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile("../shaders/terrainFS.glsl"));
+	std::shared_ptr<ge::gl::Shader> dummyVS		= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile("../shaders/dummyVS.glsl"));
+	std::shared_ptr<ge::gl::Shader> dummyFS		= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile("../shaders/dummyFS.glsl"));
+	std::shared_ptr<ge::gl::Shader> skyboxVS	= std::make_shared<ge::gl::Shader>(GL_VERTEX_SHADER			, ge::util::loadTextFile("../shaders/skyboxVS.glsl"));
+	std::shared_ptr<ge::gl::Shader> skyboxFS	= std::make_shared<ge::gl::Shader>(GL_FRAGMENT_SHADER		, ge::util::loadTextFile("../shaders/skyboxFS.glsl"));
 
 	/* Shader programs */
 	grassShaderProgram	 = std::make_shared<ge::gl::Program>(grassVS, grassTCS, grassTES, grassFS);
@@ -240,19 +240,19 @@ void OpenGLWindow::initializeGL()
 	gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// Load textures (mirrored vertically because of y axis differences between OpenGL and QImage)
-	debugTexture	  = new QOpenGLTexture(QImage(DEBUG_TEXTURE).mirrored());
-	grassAlphaTexture = new QOpenGLTexture(QImage(GRASS_ALPHA).mirrored());
-	heightMap		  = new QOpenGLTexture(QImage(HEIGHT_MAP).mirrored());
+	debugTexture	  = new QOpenGLTexture(QImage("../res/debug_texture.png").mirrored());
+	grassAlphaTexture = new QOpenGLTexture(QImage("../res/grass_alpha.png").mirrored());
+	heightMap		  = new QOpenGLTexture(QImage("../res/height_map.png").mirrored());
 
 	// Load skybox
 	std::vector<QString> faces
 	{
-		SKYBOX_RIGHT,
-		SKYBOX_LEFT,
-		SKYBOX_TOP,
-		SKYBOX_BOTTOM,
-		SKYBOX_FRONT,
-		SKYBOX_BACK
+		"../res/skybox_right.png",
+		"../res/skybox_left.png",
+		"../res/skybox_top.png",
+		"../res/skybox_bottom.png",
+		"../res/skybox_front.png",
+		"../res/skybox_back.png"
 	};
 	skyboxTexture = loadSkybox(faces);
 }
